@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>截图收藏夹</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
+
+  /* 登录页 */
+  #loginPage { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
+  #loginPage h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+  #loginPage .subtitle { color: #888; margin-bottom: 32px; font-size: 0.9rem; }
+  .login-box { background: #16213e; border-radius: 16px; padding: 40px; width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+  .login-box input { width: 100%; padding: 14px 16px; border: 1px solid #333; border-radius: 8px; background: #0f3460; color: #fff; font-size: 1rem; margin-bottom: 16px; outline: none; transition: border 0.2s; }
+  .login-box input:focus { border-color: #e94560; }
+  .login-box button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: background 0.2s; }
+  .login-box button:hover { background: #d63a54; }
+  #loginError { color: #ff6b6b; text-align: center; margin-top: 12px; font-size: 0.85rem; display: none; }
+
+  /* 主界面 */
+  #mainPage { display: none; min-height: 100vh; }
+  .header { background: #16213e; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
+  .header h1 { font-size: 1.2rem; color: #e94560; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .header-right .btn { background: #e94560; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+  .header-right .btn-outline { background: transparent; border: 1px solid #e94560; color: #e94560; }
+  .header-right .count { color: #888; font-size: 0.85rem; }
+
+  /* 上传区 */
+  .upload-zone { margin: 24px; border: 2px dashed #333; border-radius: 12px; padding: 40px; text-align: center; transition: all 0.2s; cursor: pointer; }
+  .upload-zone:hover, .upload-zone.dragover { border-color: #e94560; background: rgba(233,69,96,0.05); }
+  .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
+  .upload-zone p { color: #888; }
+  .upload-zone input { display: none; }
+  #uploadProgress { display: none; margin: 16px 24px; background: #16213e; border-radius: 8px; padding: 16px; }
+  #uploadProgress .bar-bg { background: #333; border-radius: 4px; height: 8px; overflow: hidden; }
+  #uploadProgress .bar { height: 100%; background: linear-gradient(90deg, #e94560, #ff6b6b); width: 0%; transition: width 0.3s; }
+  #uploadProgress .text { color: #888; font-size: 0.85rem; margin-top: 8px; text-align: center; }
+
+  /* 筛选工具栏 */
+  .toolbar { margin: 0 24px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .toolbar select, .toolbar input { padding: 8px 12px; border: 1px solid #333; border-radius: 6px; background: #16213e; color: #fff; font-size: 0.85rem; outline: none; }
+  .toolbar select { min-width: 120px; }
+  .toolbar input[type="text"] { flex: 1; min-width: 150px; }
+  .toolbar .spacer { flex: 1; }
+  .toolbar .btn-icon { background: transparent; border: 1px solid #333; color: #888; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+  .toolbar .btn-icon.active { border-color: #e94560; color: #e94560; }
+
+  /* 图片网格 */
+  .gallery { padding: 0 24px 24px; columns: 2 200px; column-gap: 16px; }
+  .gallery-item { break-inside: avoid; margin-bottom: 16px; position: relative; border-radius: 8px; overflow: hidden; background: #16213e; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+  .gallery-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+  .gallery-item img { width: 100%; display: block; }
+  .gallery-item .overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.7)); padding: 8px; opacity: 0; transition: opacity 0.2s; }
+  .gallery-item:hover .overlay { opacity: 1; }
+  .gallery-item .overlay span { font-size: 0.75rem; color: #ccc; }
+  .gallery-item .delete-btn { position: absolute; top: 8px; right: 8px; background: rgba(233,69,96,0.9); border: none; color: #fff; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.2s; }
+  .gallery-item:hover .delete-btn { opacity: 1; }
+
+  /* 空状态 */
+  .empty-state { text-align: center; padding: 60px 20px; color: #555; }
+  .empty-state .icon { font-size: 4rem; margin-bottom: 16px; }
+  .empty-state p { font-size: 1rem; }
+
+  /* 预览弹窗 */
+  #previewModal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
+  #previewModal.show { display: flex; }
+  #previewModal img { max-width: 90vw; max-height: 80vh; border-radius: 8px; }
+  #previewModal .preview-info { color: #888; margin-top: 16px; font-size: 0.9rem; text-align: center; }
+  #previewModal .close-btn { position: absolute; top: 20px; right: 20px; background: #333; border: none; color: #fff; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
+  #previewModal .actions { margin-top: 16px; display: flex; gap: 12px; }
+  #previewModal .actions button { background: #333; border: none; color: #fff; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+  #previewModal .actions button:hover { background: #444; }
+  #previewModal .actions .btn-danger { background: #e94560; }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #16213e; color: #fff; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,0.3); transition: transform 0.3s; z-index: 2000; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.success { border-left: 4px solid #4caf50; }
+  #toast.error { border-left: 4px solid #e94560; }
+
+  /* 加载更多 */
+  .load-more { text-align: center; padding: 20px; }
+  .load-more button { background: #16213e; border: 1px solid #333; color: #888; padding: 10px 24px; border-radius: 6px; cursor: pointer; }
+  .load-more button:hover { border-color: #e94560; color: #e94560; }
+
+  @media (max-width: 600px) {
+    .gallery { columns: 2; padding: 0 12px 12px; }
+    .header { padding: 12px 16px; }
+    .toolbar { margin: 0 12px 12px; }
+    .upload-zone { margin: 12px; padding: 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div id="loginPage">
+  <h1>🔥 截图收藏夹</h1>
+  <p class="subtitle">安全存储，随时访问</p>
+  <div class="login-box">
+    <input type="password" id="passwordInput" placeholder="请输入访问密码" onkeypress="if(event.key==='Enter')checkPassword()">
+    <button onclick="checkPassword()">进入</button>
+    <p id="loginError">密码错误，请重试</p>
+  </div>
+</div>
+
+<!-- 主界面 -->
+<div id="mainPage">
+  <div class="header">
+    <h1>🔥 截图收藏夹</h1>
+    <div class="header-right">
+      <span class="count" id="totalCount">0 张截图</span>
+      <button class="btn btn-outline" onclick="logout()">退出</button>
+    </div>
+  </div>
+
+  <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+    <div class="icon">📸</div>
+    <p>点击或拖拽图片到这里上传</p>
+    <p style="font-size:0.8rem;margin-top:8px;color:#555">支持 PNG / JPG / GIF / WEBP</p>
+    <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this.files)">
+  </div>
+
+  <div id="uploadProgress">
+    <div class="bar-bg"><div class="bar" id="progressBar"></div></div>
+    <div class="text" id="progressText">上传中...</div>
+  </div>
+
+  <div class="toolbar">
+    <select id="sortSelect" onchange="loadImages()">
+      <option value="newest">最新优先</option>
+      <option value="oldest">最早优先</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="搜索文件名..." oninput="loadImages()">
+    <div class="spacer"></div>
+    <button class="btn-icon" id="viewToggle" onclick="toggleView()">☰ 列表</button>
+  </div>
+
+  <div id="gallery" class="gallery"></div>
+  <div id="emptyState" class="empty-state" style="display:none">
+    <div class="icon">📂</div>
+    <p>还没有截图，拖一张上来吧</p>
+  </div>
+  <div id="loadMoreBtn" class="load-more" style="display:none">
+    <button onclick="loadMore()">加载更多</button>
+  </div>
+</div>
+
+<!-- 预览弹窗 -->
+<div id="previewModal">
+  <button class="close-btn" onclick="closePreview()">×</button>
+  <img id="previewImg" src="" alt="">
+  <div class="preview-info" id="previewInfo"></div>
+  <div class="actions">
+    <button onclick="downloadCurrent()">📥 下载</button>
+    <button class="btn-danger" onclick="deleteCurrent()">🗑️ 删除</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<script>
+// ========== 安全配置区 ==========
+// 密钥通过 Vercel 环境变量注入，代码中不包含敏感信息
+// 需要在 Vercel 后台设置以下环境变量：
+// - COS_BUCKET: COS桶名称
+// - COS_REGION: 地区（如 ap-guangzhou）
+// - COS_SECRET_ID: SecretId
+// - COS_SECRET_KEY: SecretKey
+// - COS_DOMAIN: COS访问域名
+// - ACCESS_PASSWORD: 访问密码
+// =================================
+
+const CONFIG = {
+  bucket: '__COS_BUCKET__',
+  region: '__COS_REGION__',
+  secretId: '__COS_SECRET_ID__',
+  secretKey: '__COS_SECRET_KEY__',
+  domain: '__COS_DOMAIN__',
+  password: '__ACCESS_PASSWORD__'
+};
+
+let currentImages = [];
+let currentIndex = 0;
+let pageSize = 30;
+let pageToken = '';
+let isLoading = false;
+let listMode = false;
+
+function checkPassword() {
+  const pwd = document.getElementById('passwordInput').value;
+  if (pwd === CONFIG.password) {
+    sessionStorage.setItem('logged_in', '1');
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('mainPage').style.display = 'block';
+    initCOS();
+    loadImages();
+  } else {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('passwordInput').value = '';
+  }
+}
+
+function logout() {
+  sessionStorage.removeItem('logged_in');
+  location.reload();
+}
+
+// 初始化COS
+let cos;
+function initCOS() {
+  const script = document.createElement('script');
+  script.src = 'https://cdn.jsdelivr.net/npm/cos-js-sdk-v5@1.4.8/dist/cos.min.js';
+  script.onload = () => {
+    cos = new COS({
+      SecretId: CONFIG.secretId,
+      SecretKey: CONFIG.secretKey
+    });
+  };
+  document.head.appendChild(script);
+}
+
+// 上传
+function handleFiles(files) {
+  if (!cos) { showToast('COS未初始化', 'error'); return; }
+  if (!files.length) return;
+
+  const zone = document.getElementById('uploadZone');
+  const progress = document.getElementById('uploadProgress');
+  zone.style.display = 'none';
+  progress.style.display = 'block';
+
+  let completed = 0;
+  let failed = 0;
+  const total = files.length;
+
+  Array.from(files).forEach(file => {
+    const key = `screenshots/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
+    cos.putObject({
+      Bucket: CONFIG.bucket,
+      Region: CONFIG.region,
+      Key: key,
+      Body: file,
+      onProgress: (info) => {
+        const pct = Math.round(info.loaded / info.total * 100);
+        document.getElementById('progressBar').style.width = pct + '%';
+        document.getElementById('progressText').textContent = `${file.name} — ${pct}%`;
+      }
+    }, (err, data) => {
+      completed++;
+      if (err) { failed++; console.error(err); }
+      if (completed === total) {
+        document.getElementById('progressBar').style.width = '100%';
+        setTimeout(() => {
+          progress.style.display = 'none';
+          zone.style.display = 'block';
+          document.getElementById('progressBar').style.width = '0%';
+          if (failed === 0) {
+            showToast(`上传成功！${total}张图片`, 'success');
+            pageToken = '';
+            loadImages();
+          } else {
+            showToast(`完成：${total - failed}成功，${failed}失败`, 'error');
+          }
+        }, 500);
+      }
+    });
+  });
+}
+
+// 拖拽
+const uploadZone = document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+
+// 加载图片
+function loadImages(refresh = false) {
+  if (!cos) return;
+  if (refresh) pageToken = '';
+  if (isLoading) return;
+  isLoading = true;
+
+  const sort = document.getElementById('sortSelect').value;
+  const marker = pageToken || '';
+  const maxKeys = pageSize;
+
+  cos.getBucket({
+    Bucket: CONFIG.bucket,
+    Region: CONFIG.region,
+    Prefix: 'screenshots/',
+    Marker: marker,
+    MaxKeys: maxKeys
+  }, (err, data) => {
+    isLoading = false;
+    if (err) { console.error(err); showToast('加载失败', 'error'); return; }
+
+    const contents = data.Contents || [];
+    if (contents.length === 0 && !refresh) return;
+
+    let images = contents.map(item => ({
+      key: item.Key,
+      name: item.Key.split('/').pop(),
+      size: item.Size,
+      lastModified: item.LastModified,
+      url: `${CONFIG.domain}/${item.Key}`
+    }));
+
+    const search = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (search) images = images.filter(img => img.name.toLowerCase().includes(search));
+
+    images.sort((a, b) => {
+      const da = new Date(a.lastModified), db = new Date(b.lastModified);
+      return sort === 'newest' ? db - da : da - db;
+    });
+
+    if (refresh) {
+      currentImages = images;
+    } else {
+      currentImages = currentImages.concat(images);
+    }
+
+    pageToken = data.NextMarker || '';
+
+    renderGallery();
+    document.getElementById('totalCount').textContent = currentImages.length + ' 张截图';
+    document.getElementById('loadMoreBtn').style.display = pageToken ? 'block' : 'none';
+  });
+}
+
+function loadMore() { loadImages(false); }
+
+function renderGallery() {
+  const gallery = document.getElementById('gallery');
+  const empty = document.getElementById('emptyState');
+
+  if (currentImages.length === 0) {
+    gallery.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  gallery.innerHTML = currentImages.map((img, i) => `
+    <div class="gallery-item" onclick="openPreview(${i})">
+      <img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a1a2e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2212%22>加载失败</text></svg>'">
+      <div class="overlay"><span>${formatDate(img.lastModified)}</span></div>
+      <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">×</button>
+    </div>
+  `).join('');
+}
+
+function formatDate(str) {
+  const d = new Date(str);
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / 1024 / 1024).toFixed(2) + ' MB';
+}
+
+// 预览
+function openPreview(index) {
+  currentIndex = index;
+  const img = currentImages[index];
+  document.getElementById('previewImg').src = img.url;
+  document.getElementById('previewInfo').textContent = `${img.name} | ${formatSize(img.size)} | ${formatDate(img.lastModified)}`;
+  document.getElementById('previewModal').classList.add('show');
+}
+
+function closePreview() {
+  document.getElementById('previewModal').classList.remove('show');
+  document.getElementById('previewImg').src = '';
+}
+
+function downloadCurrent() {
+  const img = currentImages[currentIndex];
+  const a = document.createElement('a');
+  a.href = img.url;
+  a.download = img.name;
+  a.click();
+}
+
+function confirmDelete(index) {
+  if (!confirm('确定删除这张截图？')) return;
+  const img = currentImages[index];
+  cos.deleteObject({
+    Bucket: CONFIG.bucket,
+    Region: CONFIG.region,
+    Key: img.key
+  }, (err) => {
+    if (err) { showToast('删除失败', 'error'); return; }
+    currentImages.splice(index, 1);
+    renderGallery();
+    document.getElementById('totalCount').textContent = currentImages.length + ' 张截图';
+    showToast('已删除', 'success');
+    closePreview();
+  });
+}
+
+function deleteCurrent() {
+  confirmDelete(currentIndex);
+}
+
+// 视图切换
+function toggleView() {
+  listMode = !listMode;
+  const btn = document.getElementById('viewToggle');
+  const gallery = document.getElementById('gallery');
+  if (listMode) {
+    btn.textContent = '▦ 网格';
+    gallery.style.columns = '1';
+    gallery.querySelectorAll('.gallery-item').forEach(el => {
+      el.style.display = 'flex';
+      el.querySelector('img').style.width = '80px';
+      el.querySelector('img').style.height = '60px';
+      el.querySelector('img').style.objectFit = 'cover';
+      el.querySelector('img').style.flexShrink = '0';
+    });
+  } else {
+    btn.textContent = '☰ 列表';
+    gallery.style.columns = '2 200px';
+    gallery.querySelectorAll('.gallery-item').forEach(el => {
+      el.style.display = 'block';
+      el.querySelector('img').style.width = '100%';
+      el.querySelector('img').style.height = '';
+      el.querySelector('img').style.objectFit = '';
+    });
+  }
+}
+
+// Toast
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + type;
+  setTimeout(() => t.className = '', 2500);
+}
+
+// 页面加载时检查登录状态
+window.onload = () => {
+  if (sessionStorage.getItem('logged_in') === '1') {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('mainPage').style.display = 'block';
+    initCOS();
+    loadImages();
+  }
+};
+
+// 键盘支持
+document.addEventListener('keydown', e => {
+  if (document.getElementById('previewModal').classList.contains('show')) {
+    if (e.key === 'Escape') closePreview();
+    if (e.key === 'ArrowLeft' && currentIndex > 0) openPreview(currentIndex - 1);
+    if (e.key === 'ArrowRight' && currentIndex < currentImages.length - 1) openPreview(currentIndex + 1);
+  }
+});
+</script>
+</body>
+</html>

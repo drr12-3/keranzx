@@ -2,8 +2,7 @@
   "name": "screenshot-gallery",
   "version": "1.0.0",
   "description": "截图收藏夹 - 基于腾讯云COS的图片管理工具",
-  "scripts": {
-    "build": "node build.js"
-  },
-  "dependencies": {}
+  "dependencies": {
+    "cos-nodejs-sdk-v5": "^2.13.0"
+  }
 }

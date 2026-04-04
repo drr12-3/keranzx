@@ -164,22 +164,8 @@
 <div id="toast"></div>
 
 <script>
-// ========== 安全配置区 ==========
-// 密钥通过 Vercel 环境变量注入，代码中不包含敏感信息
-// 需要在 Vercel 后台设置以下环境变量：
-// - COS_BUCKET: COS桶名称
-// - COS_REGION: 地区（如 ap-guangzhou）
-// - COS_SECRET_ID: SecretId
-// - COS_SECRET_KEY: SecretKey
-// - COS_DOMAIN: COS访问域名
-// - ACCESS_PASSWORD: 访问密码
-// =================================
-
+// ========== 配置 ==========
 const CONFIG = {
-  bucket: '__COS_BUCKET__',
-  region: '__COS_REGION__',
-  secretId: '__COS_SECRET_ID__',
-  secretKey: '__COS_SECRET_KEY__',
   domain: '__COS_DOMAIN__',
   password: '__ACCESS_PASSWORD__'
 };
@@ -191,13 +177,28 @@ let pageToken = '';
 let isLoading = false;
 let listMode = false;
 
+// 调用API
+async function apiCos(action, params) {
+  const response = await fetch('/api/cos', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, params })
+  });
+  
+  if (!response.ok) {
+    const err = await response.json();
+    throw new Error(err.error || 'API请求失败');
+  }
+  
+  return response.json();
+}
+
 function checkPassword() {
   const pwd = document.getElementById('passwordInput').value;
   if (pwd === CONFIG.password) {
     sessionStorage.setItem('logged_in', '1');
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainPage').style.display = 'block';
-    initCOS();
     loadImages();
   } else {
     document.getElementById('loginError').style.display = 'block';
@@ -210,23 +211,8 @@ function logout() {
   location.reload();
 }
 
-// 初始化COS
-let cos;
-function initCOS() {
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/cos-js-sdk-v5@1.4.8/dist/cos.min.js';
-  script.onload = () => {
-    cos = new COS({
-      SecretId: CONFIG.secretId,
-      SecretKey: CONFIG.secretKey
-    });
-  };
-  document.head.appendChild(script);
-}
-
-// 上传
-function handleFiles(files) {
-  if (!cos) { showToast('COS未初始化', 'error'); return; }
+// 上传处理
+async function handleFiles(files) {
   if (!files.length) return;
 
   const zone = document.getElementById('uploadZone');
@@ -238,38 +224,47 @@ function handleFiles(files) {
   let failed = 0;
   const total = files.length;
 
-  Array.from(files).forEach(file => {
-    const key = `screenshots/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
-    cos.putObject({
-      Bucket: CONFIG.bucket,
-      Region: CONFIG.region,
-      Key: key,
-      Body: file,
-      onProgress: (info) => {
-        const pct = Math.round(info.loaded / info.total * 100);
-        document.getElementById('progressBar').style.width = pct + '%';
-        document.getElementById('progressText').textContent = `${file.name} — ${pct}%`;
-      }
-    }, (err, data) => {
+  for (const file of Array.from(files)) {
+    try {
+      document.getElementById('progressText').textContent = `上传中: ${file.name}`;
+      
+      // 读取文件为base64
+      const body = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(',')[1];
+          resolve(base64);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      const key = `screenshots/${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${file.name}`;
+      
+      await apiCos('upload', { key, body, size: file.size });
       completed++;
-      if (err) { failed++; console.error(err); }
-      if (completed === total) {
-        document.getElementById('progressBar').style.width = '100%';
-        setTimeout(() => {
-          progress.style.display = 'none';
-          zone.style.display = 'block';
-          document.getElementById('progressBar').style.width = '0%';
-          if (failed === 0) {
-            showToast(`上传成功！${total}张图片`, 'success');
-            pageToken = '';
-            loadImages();
-          } else {
-            showToast(`完成：${total - failed}成功，${failed}失败`, 'error');
-          }
-        }, 500);
-      }
-    });
-  });
+    } catch (err) {
+      console.error(err);
+      failed++;
+    }
+    
+    const pct = Math.round((completed + failed) / total * 100);
+    document.getElementById('progressBar').style.width = pct + '%';
+  }
+
+  setTimeout(() => {
+    progress.style.display = 'none';
+    zone.style.display = 'block';
+    document.getElementById('progressBar').style.width = '0%';
+    
+    if (failed === 0) {
+      showToast(`上传成功！${completed}张图片`, 'success');
+      pageToken = '';
+      loadImages();
+    } else {
+      showToast(`完成：${completed}成功，${failed}失败`, 'error');
+    }
+  }, 500);
 }
 
 // 拖拽
@@ -279,33 +274,18 @@ uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag
 uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
 
 // 加载图片
-function loadImages(refresh = false) {
-  if (!cos) return;
+async function loadImages(refresh = false) {
   if (refresh) pageToken = '';
   if (isLoading) return;
   isLoading = true;
 
-  const sort = document.getElementById('sortSelect').value;
-  const marker = pageToken || '';
-  const maxKeys = pageSize;
-
-  cos.getBucket({
-    Bucket: CONFIG.bucket,
-    Region: CONFIG.region,
-    Prefix: 'screenshots/',
-    Marker: marker,
-    MaxKeys: maxKeys
-  }, (err, data) => {
-    isLoading = false;
-    if (err) { console.error(err); showToast('加载失败', 'error'); return; }
-
-    const contents = data.Contents || [];
-    if (contents.length === 0 && !refresh) return;
-
-    let images = contents.map(item => ({
+  try {
+    const data = await apiCos('list', { marker: pageToken, maxKeys: pageSize });
+    
+    let images = (data.Contents || []).map(item => ({
       key: item.Key,
       name: item.Key.split('/').pop(),
-      size: item.Size,
+      size: parseInt(item.Size) || 0,
       lastModified: item.LastModified,
       url: `${CONFIG.domain}/${item.Key}`
     }));
@@ -313,6 +293,7 @@ function loadImages(refresh = false) {
     const search = document.getElementById('searchInput').value.toLowerCase().trim();
     if (search) images = images.filter(img => img.name.toLowerCase().includes(search));
 
+    const sort = document.getElementById('sortSelect').value;
     images.sort((a, b) => {
       const da = new Date(a.lastModified), db = new Date(b.lastModified);
       return sort === 'newest' ? db - da : da - db;
@@ -329,7 +310,12 @@ function loadImages(refresh = false) {
     renderGallery();
     document.getElementById('totalCount').textContent = currentImages.length + ' 张截图';
     document.getElementById('loadMoreBtn').style.display = pageToken ? 'block' : 'none';
-  });
+  } catch (err) {
+    console.error(err);
+    showToast('加载失败', 'error');
+  } finally {
+    isLoading = false;
+  }
 }
 
 function loadMore() { loadImages(false); }
@@ -387,21 +373,19 @@ function downloadCurrent() {
   a.click();
 }
 
-function confirmDelete(index) {
+async function confirmDelete(index) {
   if (!confirm('确定删除这张截图？')) return;
   const img = currentImages[index];
-  cos.deleteObject({
-    Bucket: CONFIG.bucket,
-    Region: CONFIG.region,
-    Key: img.key
-  }, (err) => {
-    if (err) { showToast('删除失败', 'error'); return; }
+  try {
+    await apiCos('delete', { key: img.key });
     currentImages.splice(index, 1);
     renderGallery();
     document.getElementById('totalCount').textContent = currentImages.length + ' 张截图';
     showToast('已删除', 'success');
     closePreview();
-  });
+  } catch (err) {
+    showToast('删除失败', 'error');
+  }
 }
 
 function deleteCurrent() {
@@ -448,7 +432,6 @@ window.onload = () => {
   if (sessionStorage.getItem('logged_in') === '1') {
     document.getElementById('loginPage').style.display = 'none';
     document.getElementById('mainPage').style.display = 'block';
-    initCOS();
     loadImages();
   }
 };

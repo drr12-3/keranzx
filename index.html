@@ -7,6 +7,8 @@
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
+
+  /* Login */
   #loginPage { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
   #loginPage h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
   .subtitle { color: #888; margin-bottom: 32px; font-size: 0.9rem; }
@@ -14,49 +16,112 @@
   .login-box input { width: 100%; padding: 14px 16px; border: 1px solid #333; border-radius: 8px; background: #0f3460; color: #fff; font-size: 1rem; margin-bottom: 16px; outline: none; }
   .login-box input:focus { border-color: #e94560; }
   .login-box button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
+  .login-box button:hover { background: #d63a54; }
   #loginError { color: #ff6b6b; text-align: center; margin-top: 12px; font-size: 0.85rem; display: none; }
+
+  /* Main Page */
   #mainPage { display: none; min-height: 100vh; }
-  .header { background: #16213e; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header { background: #16213e; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   .header h1 { font-size: 1rem; color: #e94560; }
   .header-right { display: flex; align-items: center; gap: 8px; }
   .btn { background: #e94560; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+  .btn:hover { background: #d63a54; }
+  .btn.secondary { background: #16213e; border: 1px solid #333; }
+  .btn.secondary:hover { border-color: #e94560; }
   .btn-icon { background: transparent; border: 1px solid #333; color: #888; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
   .btn-icon:hover, .btn-icon.active { border-color: #e94560; color: #e94560; }
-  .count { color: #888; font-size: 0.8rem; }
+  .btn-icon.selected { background: #e94560; border-color: #e94560; color: #fff; }
+  .count { color: #888; font-size: 0.8rem; white-space: nowrap; }
+
+  /* Category Filters */
+  .category-filters { display: flex; gap: 8px; padding: 12px 16px 0; overflow-x: auto; scrollbar-width: none; flex-wrap: wrap; }
+  .category-filters::-webkit-scrollbar { display: none; }
+  .category-chip { background: #16213e; border: 1px solid #333; color: #888; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: all 0.2s; display: flex; align-items: center; gap: 4px; }
+  .category-chip:hover { border-color: #e94560; color: #e94560; }
+  .category-chip.active { border-color: #fff; color: #fff; }
+  .category-chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .category-chip .count-badge { background: rgba(255,255,255,0.2); padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; }
+
+  /* Time Filters */
   .time-filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
   .time-filters::-webkit-scrollbar { display: none; }
   .filter-chip { background: #16213e; border: 1px solid #333; color: #888; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: all 0.2s; }
   .filter-chip:hover { border-color: #e94560; color: #e94560; }
   .filter-chip.active { background: #e94560; border-color: #e94560; color: #fff; }
+
+  /* Search Bar */
   .search-bar { padding: 0 16px 12px; }
   .search-bar input { width: 100%; padding: 10px 12px; border: 1px solid #333; border-radius: 8px; background: #16213e; color: #fff; font-size: 0.9rem; outline: none; }
-  .upload-zone { margin: 0 16px 16px; border: 2px dashed #333; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; }
-  .upload-zone:hover { border-color: #e94560; }
+  .search-bar input:focus { border-color: #e94560; }
+
+  /* Batch Actions Bar */
+  #batchBar { display: none; background: #0f3460; padding: 10px 16px; position: sticky; top: 52px; z-index: 99; align-items: center; justify-content: space-between; gap: 12px; }
+  #batchBar.show { display: flex; }
+  #batchBar .batch-info { font-size: 0.85rem; color: #fff; }
+  #batchBar .batch-actions { display: flex; gap: 8px; }
+
+  /* Upload Zone */
+  .upload-zone { margin: 0 16px 16px; border: 2px dashed #333; border-radius: 12px; padding: 24px; text-align: center; transition: all 0.2s; cursor: pointer; }
+  .upload-zone:hover, .upload-zone.dragover { border-color: #e94560; background: rgba(233,69,96,0.05); }
   .upload-zone .icon { font-size: 2rem; margin-bottom: 8px; }
   .upload-zone p { color: #888; font-size: 0.85rem; }
   .upload-zone input { display: none; }
+
+  /* Upload Progress */
   #uploadProgress { display: none; margin: 0 16px 16px; background: #16213e; border-radius: 8px; padding: 12px; }
   #uploadProgress .bar-bg { background: #333; border-radius: 4px; height: 6px; overflow: hidden; }
   #uploadProgress .bar { height: 100%; background: linear-gradient(90deg, #e94560, #ff6b6b); width: 0%; transition: width 0.3s; }
   #uploadProgress .text { color: #888; font-size: 0.8rem; margin-top: 8px; text-align: center; }
+
+  /* Gallery Grid View */
   .gallery { display: grid; gap: 12px; padding: 0 16px 16px; }
   .gallery.grid-view { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
   .gallery.list-view { grid-template-columns: 1fr; gap: 8px; }
-  .gallery-item { position: relative; border-radius: 10px; overflow: hidden; background: #16213e; cursor: pointer; }
+
+  .gallery-item { position: relative; border-radius: 10px; overflow: hidden; background: #16213e; cursor: pointer; transition: transform 0.2s; }
+  .gallery-item:active { transform: scale(0.98); }
+  .gallery-item.selected { outline: 3px solid #e94560; outline-offset: -3px; }
+
+  /* Grid Item */
   .gallery.grid-view .gallery-item { aspect-ratio: 1; }
   .gallery.grid-view .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
   .gallery.grid-view .overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
   .gallery.grid-view .overlay span { font-size: 0.7rem; color: #ccc; }
+  .gallery.grid-view .tags { display: none; }
+  .gallery.grid-view .cat-indicator { position: absolute; top: 6px; left: 6px; display: flex; gap: 3px; flex-wrap: wrap; max-width: 80%; }
+
+  /* List Item */
   .gallery.list-view .gallery-item { display: flex; align-items: center; padding: 8px; gap: 12px; }
   .gallery.list-view .gallery-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
   .gallery.list-view .info { flex: 1; min-width: 0; }
-  .gallery.list-view .info .name { font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .gallery.list-view .info .date { font-size: 0.75rem; color: #888; margin-top: 2px; }
+  .gallery.list-view .info .name { font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+  .gallery.list-view .info .date { font-size: 0.75rem; color: #888; }
+  .gallery.list-view .info .tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
   .gallery.list-view .overlay { display: none; }
-  .delete-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: none; }
+
+  /* Select Checkbox */
+  .select-check { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 2px solid #fff; display: none; align-items: center; justify-content: center; font-size: 0.8rem; color: #fff; z-index: 5; }
+  .gallery-item.selected .select-check { display: flex; background: #e94560; border-color: #e94560; }
+  .select-mode .select-check { display: flex; }
+  .gallery-item.selected .select-check::after { content: '\2713'; }
+
+  /* Tags */
+  .tag { background: rgba(233,69,96,0.3); color: #e94560; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; }
+  .tag.time { background: rgba(100,100,255,0.3); color: #8888ff; }
+
+  /* Category Tag */
+  .cat-tag { display: inline-flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; color: #fff; }
+  .cat-tag .cat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* Delete Button */
+  .delete-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: none; z-index: 10; }
   .gallery-item:hover .delete-btn { display: block; }
+
+  /* Empty State */
   #emptyState { text-align: center; padding: 60px 20px; color: #666; }
   #emptyState .icon { font-size: 3rem; margin-bottom: 12px; }
+
+  /* Preview Modal */
   #previewModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   #previewModal.show { display: flex; }
   #previewModal img { max-width: 90%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
@@ -65,18 +130,63 @@
   #previewModal .nav.prev { left: 12px; }
   #previewModal .nav.next { right: 12px; }
   #previewModal .preview-info { margin-top: 12px; color: #888; font-size: 0.85rem; text-align: center; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 2000; }
+  #previewModal .preview-tags { margin-top: 8px; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  #previewModal .preview-actions { margin-top: 12px; display: flex; gap: 8px; }
+  #previewModal .preview-actions button { background: rgba(255,255,255,0.1); border: 1px solid #333; color: #fff; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+  #previewModal .preview-actions button:hover { background: rgba(255,255,255,0.2); }
+
+  /* Category Modal */
+  .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1100; align-items: center; justify-content: center; padding: 20px; }
+  .modal.show { display: flex; }
+  .modal-content { background: #16213e; border-radius: 12px; padding: 24px; width: 100%; max-width: 400px; max-height: 80vh; overflow-y: auto; }
+  .modal-content h3 { color: #fff; margin-bottom: 16px; font-size: 1.1rem; display: flex; align-items: center; justify-content: space-between; }
+  .modal-content h3 .close-btn { background: none; border: none; color: #888; cursor: pointer; font-size: 1.5rem; }
+  .modal-content h3 .close-btn:hover { color: #fff; }
+
+  /* Category Form */
+  .category-form { display: flex; gap: 8px; margin-bottom: 16px; }
+  .category-form input { flex: 1; padding: 10px 12px; border: 1px solid #333; border-radius: 6px; background: #0f3460; color: #fff; font-size: 0.9rem; }
+  .category-form input:focus { border-color: #e94560; outline: none; }
+  .category-form .color-picker { width: 40px; height: 40px; border: none; border-radius: 6px; cursor: pointer; background: #e94560; }
+  .category-form button { padding: 10px 16px; background: #e94560; border: none; border-radius: 6px; color: #fff; cursor: pointer; }
+
+  /* Category List */
+  .category-list { display: flex; flex-direction: column; gap: 8px; }
+  .category-item { display: flex; align-items: center; gap: 10px; padding: 10px; background: #0f3460; border-radius: 8px; }
+  .category-item .cat-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .category-item .cat-name { flex: 1; font-size: 0.9rem; }
+  .category-item .cat-count { color: #888; font-size: 0.8rem; }
+  .category-item .cat-actions { display: flex; gap: 4px; }
+  .category-item .cat-actions button { background: none; border: none; color: #888; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+  .category-item .cat-actions button:hover { background: rgba(255,255,255,0.1); color: #fff; }
+  .category-item .cat-actions button.delete:hover { color: #ef4444; }
+
+  /* Assign Categories Modal */
+  .assign-cats { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  .assign-cat-btn { padding: 8px 12px; border: 1px solid #333; border-radius: 20px; background: none; color: #888; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; gap: 6px; }
+  .assign-cat-btn:hover { border-color: #e94560; color: #fff; }
+  .assign-cat-btn.selected { border-color: #fff; color: #fff; }
+  .assign-cat-btn .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 2000; animation: fadeIn 0.3s; }
   .toast.success { background: #10b981; color: #fff; }
   .toast.error { background: #ef4444; color: #fff; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+  /* Responsive */
   @media (max-width: 480px) {
     .gallery.grid-view { grid-template-columns: repeat(3, 1fr); gap: 6px; }
     .gallery { padding: 0 12px 12px; }
     .header { padding: 10px 12px; }
+    .btn { padding: 6px 10px; font-size: 0.75rem; }
     .gallery.list-view .gallery-item img { width: 50px; height: 50px; }
   }
 </style>
 </head>
 <body>
+
+<!-- Login Page -->
 <div id="loginPage">
   <h1>Screenshot Gallery</h1>
   <p class="subtitle">Enter password to access</p>
@@ -86,16 +196,27 @@
     <div id="loginError">Incorrect password</div>
   </div>
 </div>
+
+<!-- Main Page -->
 <div id="mainPage">
   <div class="header">
     <h1>Gallery</h1>
     <div class="header-right">
       <span class="count" id="totalCount">0</span>
-      <button class="btn-icon" id="viewToggle" onclick="toggleView()" title="Switch view">⊞</button>
+      <button class="btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="Select mode">&#9744;</button>
+      <button class="btn-icon" id="viewToggle" onclick="toggleView()" title="Switch view">&#9638;</button>
+      <button class="btn secondary" onclick="openCategoryModal()">&#128203;</button>
       <button class="btn" onclick="document.getElementById('fileInput').click()">+ Upload</button>
-      <button class="btn-icon" onclick="loadImages(true)" title="Refresh">↻</button>
+      <button class="btn-icon" onclick="loadImages(true)" title="Refresh">&#8635;</button>
     </div>
   </div>
+
+  <div class="category-filters" id="categoryFilters">
+    <span class="category-chip active" data-cat="all" onclick="setCategoryFilter('all')">
+      All <span class="count-badge" id="catAllCount">0</span>
+    </span>
+  </div>
+
   <div class="time-filters" id="timeFilters">
     <span class="filter-chip active" data-filter="all" onclick="setTimeFilter('all')">All</span>
     <span class="filter-chip" data-filter="today" onclick="setTimeFilter('today')">Today</span>
@@ -103,31 +224,83 @@
     <span class="filter-chip" data-filter="month" onclick="setTimeFilter('month')">This Month</span>
     <span class="filter-chip" data-filter="older" onclick="setTimeFilter('older')">Older</span>
   </div>
+
   <div class="search-bar">
-    <input type="text" id="searchInput" placeholder="Search by name..." oninput="filterAndRender()">
+    <input type="text" id="searchInput" placeholder="Search by name or tag..." oninput="filterAndRender()">
   </div>
+
+  <!-- Batch Actions Bar -->
+  <div id="batchBar">
+    <span class="batch-info" id="batchInfo">0 selected</span>
+    <div class="batch-actions">
+      <button class="btn secondary" onclick="openBatchAssignModal()">&#128203; Assign</button>
+      <button class="btn" onclick="batchDelete()">&#128465; Delete</button>
+      <button class="btn secondary" onclick="clearSelection()">Cancel</button>
+    </div>
+  </div>
+
   <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
     <div class="icon">+</div>
     <p>Tap to upload screenshots</p>
     <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this.files)">
   </div>
+
   <div id="uploadProgress">
     <div class="bar-bg"><div class="bar" id="uploadBar"></div></div>
     <div class="text" id="uploadText">Uploading...</div>
   </div>
+
   <div id="gallery" class="gallery grid-view"></div>
   <div id="emptyState">
-    <div class="icon">📁</div>
+    <div class="icon">&#128193;</div>
     <p>No screenshots yet</p>
   </div>
 </div>
+
+<!-- Preview Modal -->
 <div id="previewModal">
   <button class="close" onclick="closePreview()">&times;</button>
   <button class="nav prev" onclick="prevImage()">&lt;</button>
   <img id="previewImg" src="" alt="">
   <button class="nav next" onclick="nextImage()">&gt;</button>
   <div class="preview-info" id="previewInfo"></div>
+  <div class="preview-tags" id="previewTags"></div>
+  <div class="preview-actions">
+    <button onclick="copyImageLink()">&#128203; Copy Link</button>
+    <button onclick="downloadImage()">&#11015; Download</button>
+    <button onclick="openAssignModal()">&#128203; Categories</button>
+  </div>
 </div>
+
+<!-- Category Management Modal -->
+<div id="categoryModal" class="modal">
+  <div class="modal-content">
+    <h3>
+      <span>&#128203; Categories</span>
+      <button class="close-btn" onclick="closeCategoryModal()">&times;</button>
+    </h3>
+    <div class="category-form">
+      <input type="text" id="newCatName" placeholder="Category name" maxlength="20">
+      <input type="color" class="color-picker" id="newCatColor" value="#e94560">
+      <button onclick="addCategory()">Add</button>
+    </div>
+    <div class="category-list" id="categoryList"></div>
+  </div>
+</div>
+
+<!-- Assign Categories Modal -->
+<div id="assignModal" class="modal">
+  <div class="modal-content">
+    <h3>
+      <span id="assignModalTitle">&#128203; Categories</span>
+      <button class="close-btn" onclick="closeAssignModal()">&times;</button>
+    </h3>
+    <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;" id="assignModalDesc">Select categories for this image:</p>
+    <div class="assign-cats" id="assignCats"></div>
+    <button class="btn" onclick="saveCategories()" style="width: 100%;">Save</button>
+  </div>
+</div>
+
 <script>
 const CONFIG = { domain: '' };
 let allImages = [];
@@ -136,25 +309,92 @@ let currentIndex = 0;
 let isLoading = false;
 let currentView = 'grid';
 let currentTimeFilter = 'all';
+let currentCatFilter = 'all';
+let searchQuery = '';
 
+// Select mode
+let selectMode = false;
+let selectedImages = new Set();
+
+// Categories storage (COS + localStorage)
+let categories = [];
+let imageCategories = {};
+let metadataLoaded = false;
+
+// Init
+function init() {
+  document.getElementById('newCatColor').value = getRandomColor();
+  loadMetadata();
+}
+
+// Load metadata from COS
+async function loadMetadata() {
+  try {
+    const data = await apiCos('getMetadata', {});
+    categories = data.categories || [];
+    imageCategories = data.imageCategories || {};
+    metadataLoaded = true;
+    renderCategoryFilters();
+  } catch (err) {
+    console.error('Failed to load metadata:', err);
+    categories = [];
+    imageCategories = {};
+    metadataLoaded = true;
+  }
+}
+
+// Save metadata to COS
+async function saveMetadata() {
+  try {
+    await apiCos('saveMetadata', {
+      categories: categories,
+      imageCategories: imageCategories
+    });
+    localStorage.setItem('gallery_categories', JSON.stringify(categories));
+    localStorage.setItem('gallery_image_categories', JSON.stringify(imageCategories));
+  } catch (err) {
+    console.error('Failed to save metadata:', err);
+    localStorage.setItem('gallery_categories', JSON.stringify(categories));
+    localStorage.setItem('gallery_image_categories', JSON.stringify(imageCategories));
+  }
+}
+
+// API call
 async function apiCos(action, params) {
-  const res = await fetch('/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, params }) });
+  const res = await fetch('/api', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action, params })
+  });
   return res.json();
 }
 
+// Login
 async function login() {
   const pwd = document.getElementById('passwordInput').value;
   try {
     const data = await apiCos('verify', { password: pwd });
-    if (data.valid) { CONFIG.domain = data.domain; document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block'; loadImages(true); }
-    else document.getElementById('loginError').style.display = 'block';
-  } catch { document.getElementById('loginError').style.display = 'block'; }
+    if (data.valid) {
+      CONFIG.domain = data.domain;
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+      loadImages(true);
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch (err) { document.getElementById('loginError').style.display = 'block'; }
 }
 
+// Toast notification
 function showToast(msg, type) {
-  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
 }
 
+// Upload handling
 const uploadZone = document.querySelector('.upload-zone');
 uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
 uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
@@ -167,111 +407,491 @@ async function handleFiles(files) {
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     document.getElementById('uploadBar').style.width = ((i + 1) / files.length * 100) + '%';
-    document.getElementById('uploadText').textContent = `Uploading ${i + 1}/${files.length}`;
+    document.getElementById('uploadText').textContent = 'Uploading ' + (i + 1) + '/' + files.length;
     const reader = new FileReader();
-    const base64 = await new Promise(resolve => { reader.onload = e => resolve(e.target.result.split(',')[1]); reader.readAsDataURL(f); });
+    const base64 = await new Promise(resolve => {
+      reader.onload = e => resolve(e.target.result.split(',')[1]);
+      reader.readAsDataURL(f);
+    });
     const ext = f.name.split('.').pop().toLowerCase();
-    const key = 'screenshots/' + Date.now() + '_' + Math.random().toString(36).substr(2, 5) + '.' + ext;
-    try { const res = await apiCos('upload', { key, body: base64 }); if (res.success) success++; else fail++; } catch { fail++; }
+    const timestamp = Date.now();
+    const random = Math.random().toString(36).substr(2, 5);
+    const key = 'screenshots/' + timestamp + '_' + random + '.' + ext;
+    try {
+      const res = await apiCos('upload', { key, body: base64 });
+      if (res.success) success++;
+      else fail++;
+    } catch { fail++; }
   }
   document.getElementById('uploadProgress').style.display = 'none';
-  showToast(`${success} uploaded, ${fail} failed`, success > 0 ? 'success' : 'error');
+  showToast(success + ' uploaded, ' + fail + ' failed', success > 0 ? 'success' : 'error');
   loadImages(true);
 }
 
+// Load images
 async function loadImages(refresh = false) {
   if (isLoading) return;
   isLoading = true;
   try {
     const data = await apiCos('list', { marker: '', maxKeys: 1000 });
     if (data.files && Array.isArray(data.files)) {
-      allImages = data.files.map(item => ({ key: item.key, name: item.key.split('/').pop(), size: parseInt(item.size) || 0, lastModified: item.lastModified, url: item.url }));
+      allImages = data.files.map(item => ({
+        key: item.key,
+        name: item.key.split('/').pop(),
+        size: parseInt(item.size) || 0,
+        lastModified: item.lastModified,
+        url: item.url,
+        tags: imageCategories[item.key] || []
+      }));
     } else if (data.Contents) {
-      allImages = (data.Contents || []).map(item => ({ key: item.Key, name: item.Key.split('/').pop(), size: parseInt(item.Size) || 0, lastModified: item.LastModified, url: CONFIG.domain ? CONFIG.domain + '/' + item.Key : item.Key }));
+      allImages = (data.Contents || []).map(item => ({
+        key: item.Key,
+        name: item.Key.split('/').pop(),
+        size: parseInt(item.Size) || 0,
+        lastModified: item.LastModified,
+        url: CONFIG.domain ? CONFIG.domain + '/' + item.Key : item.Key,
+        tags: imageCategories[item.Key] || []
+      }));
     }
     allImages.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
     filterAndRender();
+    renderCategoryFilters();
   } catch (err) { console.error(err); showToast('Load failed', 'error'); }
   finally { isLoading = false; }
 }
 
+// Filter and render
 function filterAndRender() {
-  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
   const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
+
   filteredImages = allImages.filter(img => {
     const date = new Date(img.lastModified);
-    let matchTime = true, matchSearch = true;
+    let matchTime = true;
+    let matchSearch = true;
+    let matchCat = true;
+
     if (currentTimeFilter === 'today') matchTime = date >= today;
     else if (currentTimeFilter === 'week') matchTime = date >= weekAgo && date < today;
     else if (currentTimeFilter === 'month') matchTime = date >= monthAgo && date < weekAgo;
     else if (currentTimeFilter === 'older') matchTime = date < monthAgo;
-    if (query) matchSearch = img.name.toLowerCase().includes(query);
-    return matchTime && matchSearch;
+
+    if (currentCatFilter !== 'all') {
+      matchCat = img.tags.includes(currentCatFilter);
+    }
+
+    if (searchQuery) {
+      matchSearch = img.name.toLowerCase().includes(searchQuery) ||
+                    img.tags.some(t => {
+                      const cat = categories.find(c => c.id === t);
+                      return cat && cat.name.toLowerCase().includes(searchQuery);
+                    });
+    }
+
+    return matchTime && matchSearch && matchCat;
   });
+
   document.getElementById('totalCount').textContent = filteredImages.length;
   renderGallery();
 }
 
+// Render gallery
 function renderGallery() {
   const gallery = document.getElementById('gallery');
   const empty = document.getElementById('emptyState');
-  if (filteredImages.length === 0) { gallery.innerHTML = ''; empty.style.display = 'block'; return; }
+
+  if (filteredImages.length === 0) {
+    gallery.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
   empty.style.display = 'none';
+
   gallery.className = 'gallery ' + currentView + '-view';
+  if (selectMode) gallery.classList.add('select-mode');
+
   gallery.innerHTML = filteredImages.map((img, i) => {
     const dateStr = formatDate(img.lastModified);
+    const catsHtml = img.tags.map(tid => {
+      const cat = categories.find(c => c.id === tid);
+      return cat ? '<span class="cat-tag" style="background:' + cat.color + '20"><span class="cat-dot" style="background:' + cat.color + '"></span>' + cat.name + '</span>' : '';
+    }).join('');
+
+    const isSelected = selectedImages.has(img.key);
+
     if (currentView === 'grid') {
-      return `<div class="gallery-item" onclick="openPreview(${i})"><img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2212%22>?</text></svg>'"><div class="overlay"><span>${dateStr}</span></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button></div>`;
+      return '<div class="gallery-item ' + (isSelected ? 'selected' : '') + '" onclick="handleItemClick(\'' + img.key + '\', ' + i + ')"><div class="select-check"></div><img src="' + img.url + '" alt="' + img.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>\'"><div class="cat-indicator">' + catsHtml + '</div><div class="overlay"><span>' + dateStr + '</span></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(' + i + ')">&times;</button></div>';
     } else {
-      return `<div class="gallery-item" onclick="openPreview(${i})"><img src="${img.url}" alt="${img.name}" loading="lazy"><div class="info"><div class="name">${img.name}</div><div class="date">${dateStr}</div></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button></div>`;
+      return '<div class="gallery-item ' + (isSelected ? 'selected' : '') + '" onclick="handleItemClick(\'' + img.key + '\', ' + i + ')"><div class="select-check"></div><img src="' + img.url + '" alt="' + img.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>\'"><div class="info"><div class="name">' + img.name + '</div><div class="date">' + dateStr + '</div><div class="tags">' + catsHtml + '</div></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(' + i + ')">&times;</button></div>';
     }
   }).join('');
 }
 
+// Handle item click
+function handleItemClick(key, index) {
+  if (selectMode) {
+    toggleSelect(key);
+  } else {
+    openPreview(index);
+  }
+}
+
+// Toggle select mode
+function toggleSelectMode() {
+  selectMode = !selectMode;
+  selectedImages.clear();
+  document.getElementById('batchBar').classList.toggle('show', selectMode);
+  document.getElementById('selectModeBtn').classList.toggle('selected', selectMode);
+  renderGallery();
+}
+
+// Toggle image selection
+function toggleSelect(key) {
+  if (selectedImages.has(key)) {
+    selectedImages.delete(key);
+  } else {
+    selectedImages.add(key);
+  }
+  document.getElementById('batchInfo').textContent = selectedImages.size + ' selected';
+  renderGallery();
+}
+
+// Clear selection
+function clearSelection() {
+  selectedImages.clear();
+  toggleSelectMode();
+}
+
+// Batch delete
+async function batchDelete() {
+  if (selectedImages.size === 0) return;
+  if (!confirm('Delete ' + selectedImages.size + ' images?')) return;
+
+  let success = 0, fail = 0;
+  for (const key of selectedImages) {
+    try {
+      await apiCos('delete', { key });
+      allImages = allImages.filter(i => i.key !== key);
+      delete imageCategories[key];
+      success++;
+    } catch { fail++; }
+  }
+
+  saveMetadata();
+  selectedImages.clear();
+  toggleSelectMode();
+  filterAndRender();
+  showToast(success + ' deleted, ' + fail + ' failed', success > 0 ? 'success' : 'error');
+}
+
+// Toggle view
 function toggleView() {
   currentView = currentView === 'grid' ? 'list' : 'grid';
   const btn = document.getElementById('viewToggle');
-  btn.textContent = currentView === 'grid' ? '⊞' : '▦';
+  btn.textContent = currentView === 'grid' ? '\u9638' : '\u25A6';
   btn.classList.toggle('active', currentView === 'list');
   renderGallery();
 }
 
-function setTimeFilter(filter) {
-  currentTimeFilter = filter;
-  document.querySelectorAll('.filter-chip').forEach(chip => { chip.classList.toggle('active', chip.dataset.filter === filter); });
+// Set category filter
+function setCategoryFilter(catId) {
+  currentCatFilter = catId;
+  document.querySelectorAll('.category-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.cat === catId);
+  });
   filterAndRender();
 }
 
+// Set time filter
+function setTimeFilter(filter) {
+  currentTimeFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.filter === filter);
+  });
+  filterAndRender();
+}
+
+// Format date
 function formatDate(str) {
   const d = new Date(str);
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  if (date.getTime() === today.getTime()) return `Today ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+
+  if (date.getTime() === today.getTime()) {
+    return 'Today ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+  }
+  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
 }
 
-function openPreview(index) { currentIndex = index; const img = filteredImages[index]; document.getElementById('previewImg').src = img.url; document.getElementById('previewInfo').textContent = img.name; document.getElementById('previewModal').classList.add('show'); }
+// Preview
+function openPreview(index) {
+  currentIndex = index;
+  const img = filteredImages[index];
+  document.getElementById('previewImg').src = img.url;
+  document.getElementById('previewInfo').textContent = img.name;
+
+  const catsHtml = img.tags.map(tid => {
+    const cat = categories.find(c => c.id === tid);
+    return cat ? '<span class="cat-tag" style="background:' + cat.color + '20"><span class="cat-dot" style="background:' + cat.color + '"></span>' + cat.name + '</span>' : '';
+  }).join('');
+  document.getElementById('previewTags').innerHTML = catsHtml;
+
+  document.getElementById('previewModal').classList.add('show');
+}
+
 function closePreview() { document.getElementById('previewModal').classList.remove('show'); }
 function prevImage() { currentIndex = (currentIndex - 1 + filteredImages.length) % filteredImages.length; openPreview(currentIndex); }
 function nextImage() { currentIndex = (currentIndex + 1) % filteredImages.length; openPreview(currentIndex); }
 
-function confirmDelete(index) {
-  if (!confirm('Delete?')) return;
-  const img = filteredImages[index];
-  apiCos('delete', { key: img.key }).then(() => { allImages = allImages.filter(i => i.key !== img.key); filterAndRender(); showToast('Deleted', 'success'); }).catch(() => showToast('Delete failed', 'error'));
+// Copy image link
+function copyImageLink() {
+  const img = filteredImages[currentIndex];
+  navigator.clipboard.writeText(img.url).then(() => {
+    showToast('Link copied!', 'success');
+  }).catch(() => {
+    showToast('Copy failed', 'error');
+  });
 }
 
+// Download image
+function downloadImage() {
+  const img = filteredImages[currentIndex];
+  const a = document.createElement('a');
+  a.href = img.url;
+  a.download = img.name;
+  a.click();
+}
+
+// Delete
+function confirmDelete(index) {
+  if (!confirm('Delete this image?')) return;
+  const img = filteredImages[index];
+  apiCos('delete', { key: img.key }).then(() => {
+    allImages = allImages.filter(i => i.key !== img.key);
+    delete imageCategories[img.key];
+    saveMetadata();
+    filterAndRender();
+    showToast('Deleted', 'success');
+  }).catch(() => showToast('Delete failed', 'error'));
+}
+
+// =============== CATEGORY MANAGEMENT ===============
+
+function getRandomColor() {
+  const colors = ['#e94560', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function generateId() {
+  return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+function saveCategories() {
+  saveMetadata();
+}
+
+function saveImageCategories() {
+  saveMetadata();
+}
+
+function openCategoryModal() {
+  renderCategoryList();
+  document.getElementById('categoryModal').classList.add('show');
+}
+
+function closeCategoryModal() {
+  document.getElementById('categoryModal').classList.remove('show');
+}
+
+function addCategory() {
+  const nameInput = document.getElementById('newCatName');
+  const colorInput = document.getElementById('newCatColor');
+  const name = nameInput.value.trim();
+
+  if (!name) {
+    showToast('Please enter a name', 'error');
+    return;
+  }
+
+  if (categories.length >= 20) {
+    showToast('Max 20 categories', 'error');
+    return;
+  }
+
+  const cat = {
+    id: generateId(),
+    name: name,
+    color: colorInput.value
+  };
+
+  categories.push(cat);
+  saveCategories();
+  nameInput.value = '';
+  renderCategoryList();
+  renderCategoryFilters();
+  showToast('Category added', 'success');
+}
+
+function deleteCategory(id) {
+  if (!confirm('Delete this category? Images will be untagged.')) return;
+
+  categories = categories.filter(c => c.id !== id);
+
+  for (const key in imageCategories) {
+    imageCategories[key] = imageCategories[key].filter(cid => cid !== id);
+  }
+
+  allImages.forEach(img => {
+    img.tags = img.tags.filter(tid => tid !== id);
+  });
+
+  saveCategories();
+  saveImageCategories();
+  renderCategoryList();
+  renderCategoryFilters();
+  filterAndRender();
+  showToast('Category deleted', 'success');
+}
+
+function renderCategoryList() {
+  const list = document.getElementById('categoryList');
+
+  if (categories.length === 0) {
+    list.innerHTML = '<p style="color: #888; text-align: center; padding: 20px;">No categories yet</p>';
+    return;
+  }
+
+  list.innerHTML = categories.map(cat => {
+    const count = allImages.filter(img => img.tags.includes(cat.id)).length;
+    return '<div class="category-item"><span class="cat-dot" style="background: ' + cat.color + '"></span><span class="cat-name">' + cat.name + '</span><span class="cat-count">' + count + '</span><div class="cat-actions"><button class="delete" onclick="deleteCategory(\'' + cat.id + '\')">Delete</button></div></div>';
+  }).join('');
+}
+
+function renderCategoryFilters() {
+  const container = document.getElementById('categoryFilters');
+
+  let html = '<span class="category-chip ' + (currentCatFilter === 'all' ? 'active' : '') + '" data-cat="all" onclick="setCategoryFilter(\'all\')">All <span class="count-badge" id="catAllCount">' + allImages.length + '</span></span>';
+
+  categories.forEach(cat => {
+    const count = allImages.filter(img => img.tags.includes(cat.id)).length;
+    html += '<span class="category-chip ' + (currentCatFilter === cat.id ? 'active' : '') + '" data-cat="' + cat.id + '" onclick="setCategoryFilter(\'' + cat.id + '\')"><span class="dot" style="background: ' + cat.color + '"></span>' + cat.name + ' <span class="count-badge">' + count + '</span></span>';
+  });
+
+  container.innerHTML = html;
+}
+
+// =============== ASSIGN CATEGORIES ===============
+
+let assignTarget = null;
+let assignImageKey = null;
+
+function openAssignModal() {
+  closePreview();
+  assignTarget = 'single';
+  assignImageKey = filteredImages[currentIndex].key;
+  document.getElementById('assignModalTitle').innerHTML = '&#128203; Categories';
+  document.getElementById('assignModalDesc').textContent = 'Select categories for this image:';
+  renderAssignCats();
+  document.getElementById('assignModal').classList.add('show');
+}
+
+function openBatchAssignModal() {
+  assignTarget = 'batch';
+  document.getElementById('assignModalTitle').innerHTML = '&#128203; Batch Assign';
+  document.getElementById('assignModalDesc').textContent = 'Assign categories to ' + selectedImages.size + ' selected images:';
+  renderAssignCats();
+  document.getElementById('assignModal').classList.add('show');
+}
+
+function closeAssignModal() {
+  document.getElementById('assignModal').classList.remove('show');
+  assignTarget = null;
+  assignImageKey = null;
+}
+
+function renderAssignCats() {
+  const container = document.getElementById('assignCats');
+
+  if (categories.length === 0) {
+    container.innerHTML = '<p style="color: #888; font-size: 0.85rem;">No categories yet. Create one first!</p>';
+    return;
+  }
+
+  const currentCats = assignTarget === 'single'
+    ? (imageCategories[assignImageKey] || [])
+    : getCommonCategories();
+
+  container.innerHTML = categories.map(cat => {
+    const isSelected = currentCats.includes(cat.id);
+    return '<button class="assign-cat-btn ' + (isSelected ? 'selected' : '') + '" onclick="toggleAssignCat(\'' + cat.id + '\')" data-cat="' + cat.id + '"><span class="dot" style="background: ' + cat.color + '"></span>' + cat.name + '</button>';
+  }).join('');
+}
+
+function toggleAssignCat(catId) {
+  if (assignTarget === 'single') {
+    const cats = imageCategories[assignImageKey] || [];
+    if (cats.includes(catId)) {
+      imageCategories[assignImageKey] = cats.filter(c => c !== catId);
+    } else {
+      imageCategories[assignImageKey] = [...cats, catId];
+    }
+  }
+  renderAssignCats();
+}
+
+function getCommonCategories() {
+  const keys = Array.from(selectedImages);
+  if (keys.length === 0) return [];
+
+  let common = imageCategories[keys[0]] || [];
+  for (let i = 1; i < keys.length; i++) {
+    const cats = imageCategories[keys[i]] || [];
+    common = common.filter(c => cats.includes(c));
+  }
+  return common;
+}
+
+function saveCategories() {
+  if (assignTarget === 'single') {
+    // Already updated in toggleAssignCat
+  } else if (assignTarget === 'batch') {
+    const selectedBtns = document.querySelectorAll('.assign-cat-btn.selected');
+    const selectedCats = Array.from(selectedBtns).map(btn => btn.dataset.cat);
+    const keys = Array.from(selectedImages);
+
+    keys.forEach(key => {
+      if (selectedCats.length > 0) {
+        imageCategories[key] = selectedCats;
+      } else {
+        imageCategories[key] = [];
+      }
+    });
+  }
+
+  allImages.forEach(img => {
+    img.tags = imageCategories[img.key] || [];
+  });
+
+  saveImageCategories();
+  closeAssignModal();
+  filterAndRender();
+  showToast('Categories saved', 'success');
+}
+
+// Keyboard navigation
 document.addEventListener('keydown', e => {
   if (!document.getElementById('previewModal').classList.contains('show')) return;
   if (e.key === 'Escape') closePreview();
   if (e.key === 'ArrowLeft') prevImage();
   if (e.key === 'ArrowRight') nextImage();
 });
+
+// Init
+init();
 </script>
 </body>
 </html>

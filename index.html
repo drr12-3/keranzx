@@ -9,56 +9,71 @@
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #1a1a2e; color: #e0e0e0; min-height: 100vh; }
   #loginPage { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
   #loginPage h1 { font-size: 2rem; margin-bottom: 8px; color: #fff; }
+  .subtitle { color: #888; margin-bottom: 32px; font-size: 0.9rem; }
   .login-box { background: #16213e; border-radius: 16px; padding: 40px; width: 100%; max-width: 360px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
   .login-box input { width: 100%; padding: 14px 16px; border: 1px solid #333; border-radius: 8px; background: #0f3460; color: #fff; font-size: 1rem; margin-bottom: 16px; outline: none; }
   .login-box input:focus { border-color: #e94560; }
   .login-box button { width: 100%; padding: 14px; background: #e94560; color: #fff; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; }
-  .login-box button:hover { background: #d63a54; }
   #loginError { color: #ff6b6b; text-align: center; margin-top: 12px; font-size: 0.85rem; display: none; }
   #mainPage { display: none; min-height: 100vh; }
-  .header { background: #16213e; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  .header h1 { font-size: 1.2rem; color: #e94560; }
-  .header-right { display: flex; align-items: center; gap: 12px; }
-  .header-right .btn { background: #e94560; color: #fff; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
-  .header-right .btn-outline { background: transparent; border: 1px solid #e94560; color: #e94560; }
-  .header-right .count { color: #888; font-size: 0.85rem; }
-  .upload-zone { margin: 24px; border: 2px dashed #333; border-radius: 12px; padding: 40px; text-align: center; transition: all 0.2s; cursor: pointer; }
-  .upload-zone:hover, .upload-zone.dragover { border-color: #e94560; background: rgba(233,69,96,0.05); }
-  .upload-zone .icon { font-size: 3rem; margin-bottom: 12px; }
-  .upload-zone p { color: #888; }
+  .header { background: #16213e; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  .header h1 { font-size: 1rem; color: #e94560; }
+  .header-right { display: flex; align-items: center; gap: 8px; }
+  .btn { background: #e94560; color: #fff; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; }
+  .btn-icon { background: transparent; border: 1px solid #333; color: #888; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 1rem; }
+  .btn-icon:hover, .btn-icon.active { border-color: #e94560; color: #e94560; }
+  .count { color: #888; font-size: 0.8rem; }
+  .time-filters { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; }
+  .time-filters::-webkit-scrollbar { display: none; }
+  .filter-chip { background: #16213e; border: 1px solid #333; color: #888; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; transition: all 0.2s; }
+  .filter-chip:hover { border-color: #e94560; color: #e94560; }
+  .filter-chip.active { background: #e94560; border-color: #e94560; color: #fff; }
+  .search-bar { padding: 0 16px 12px; }
+  .search-bar input { width: 100%; padding: 10px 12px; border: 1px solid #333; border-radius: 8px; background: #16213e; color: #fff; font-size: 0.9rem; outline: none; }
+  .upload-zone { margin: 0 16px 16px; border: 2px dashed #333; border-radius: 12px; padding: 24px; text-align: center; cursor: pointer; }
+  .upload-zone:hover { border-color: #e94560; }
+  .upload-zone .icon { font-size: 2rem; margin-bottom: 8px; }
+  .upload-zone p { color: #888; font-size: 0.85rem; }
   .upload-zone input { display: none; }
-  #uploadProgress { display: none; margin: 16px 24px; background: #16213e; border-radius: 8px; padding: 16px; }
-  #uploadProgress .bar-bg { background: #333; border-radius: 4px; height: 8px; overflow: hidden; }
+  #uploadProgress { display: none; margin: 0 16px 16px; background: #16213e; border-radius: 8px; padding: 12px; }
+  #uploadProgress .bar-bg { background: #333; border-radius: 4px; height: 6px; overflow: hidden; }
   #uploadProgress .bar { height: 100%; background: linear-gradient(90deg, #e94560, #ff6b6b); width: 0%; transition: width 0.3s; }
-  #uploadProgress .text { color: #888; font-size: 0.85rem; margin-top: 8px; text-align: center; }
-  .toolbar { margin: 0 24px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .toolbar select, .toolbar input { padding: 8px 12px; border: 1px solid #333; border-radius: 6px; background: #16213e; color: #fff; font-size: 0.85rem; outline: none; }
-  .toolbar select { min-width: 120px; }
-  .toolbar input[type="text"] { flex: 1; min-width: 150px; }
-  .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin: 0 24px 24px; }
-  .gallery-item { position: relative; border-radius: 12px; overflow: hidden; background: #16213e; cursor: pointer; transition: transform 0.2s; }
-  .gallery-item:hover { transform: scale(1.02); }
-  .gallery-item img { width: 100%; height: 200px; object-fit: cover; display: block; }
-  .gallery-item .overlay { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(transparent, rgba(0,0,0,0.8)); padding: 24px 12px 12px; }
-  .gallery-item .overlay span { font-size: 0.75rem; color: #ccc; }
-  .gallery-item .delete-btn { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 28px; height: 28px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; display: none; }
+  #uploadProgress .text { color: #888; font-size: 0.8rem; margin-top: 8px; text-align: center; }
+  .gallery { display: grid; gap: 12px; padding: 0 16px 16px; }
+  .gallery.grid-view { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .gallery.list-view { grid-template-columns: 1fr; gap: 8px; }
+  .gallery-item { position: relative; border-radius: 10px; overflow: hidden; background: #16213e; cursor: pointer; }
+  .gallery.grid-view .gallery-item { aspect-ratio: 1; }
+  .gallery.grid-view .gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+  .gallery.grid-view .overlay { position: absolute; bottom: 0; left: 0; right: 0; padding: 8px; background: linear-gradient(transparent, rgba(0,0,0,0.8)); }
+  .gallery.grid-view .overlay span { font-size: 0.7rem; color: #ccc; }
+  .gallery.list-view .gallery-item { display: flex; align-items: center; padding: 8px; gap: 12px; }
+  .gallery.list-view .gallery-item img { width: 60px; height: 60px; object-fit: cover; border-radius: 6px; flex-shrink: 0; }
+  .gallery.list-view .info { flex: 1; min-width: 0; }
+  .gallery.list-view .info .name { font-size: 0.9rem; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gallery.list-view .info .date { font-size: 0.75rem; color: #888; margin-top: 2px; }
+  .gallery.list-view .overlay { display: none; }
+  .delete-btn { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.6); color: #fff; border: none; width: 24px; height: 24px; border-radius: 50%; cursor: pointer; font-size: 1rem; display: none; }
   .gallery-item:hover .delete-btn { display: block; }
   #emptyState { text-align: center; padding: 60px 20px; color: #666; }
-  #emptyState .icon { font-size: 4rem; margin-bottom: 16px; }
-  #loadMoreBtn { display: none; margin: 0 24px 24px; padding: 12px; background: #16213e; border: 1px solid #333; border-radius: 8px; color: #888; cursor: pointer; width: calc(100% - 48px); }
-  #loadMoreBtn:hover { border-color: #e94560; color: #e94560; }
-  #previewModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; }
+  #emptyState .icon { font-size: 3rem; margin-bottom: 12px; }
+  #previewModal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.95); z-index: 1000; align-items: center; justify-content: center; flex-direction: column; }
   #previewModal.show { display: flex; }
-  #previewModal img { max-width: 90%; max-height: 90%; border-radius: 8px; }
-  #previewModal .close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: #fff; font-size: 2rem; cursor: pointer; }
-  #previewModal .nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; padding: 16px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
-  #previewModal .nav.prev { left: 20px; }
-  #previewModal .nav.next { right: 20px; }
-  #previewModal .info { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); color: #888; font-size: 0.85rem; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 8px; font-size: 0.9rem; z-index: 2000; animation: fadeIn 0.3s; }
+  #previewModal img { max-width: 90%; max-height: 70vh; border-radius: 8px; object-fit: contain; }
+  #previewModal .close { position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1.2rem; }
+  #previewModal .nav { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.1); border: none; color: #fff; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; font-size: 1.5rem; }
+  #previewModal .nav.prev { left: 12px; }
+  #previewModal .nav.next { right: 12px; }
+  #previewModal .preview-info { margin-top: 12px; color: #888; font-size: 0.85rem; text-align: center; }
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); padding: 10px 20px; border-radius: 8px; font-size: 0.85rem; z-index: 2000; }
   .toast.success { background: #10b981; color: #fff; }
   .toast.error { background: #ef4444; color: #fff; }
-  @keyframes fadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+  @media (max-width: 480px) {
+    .gallery.grid-view { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    .gallery { padding: 0 12px 12px; }
+    .header { padding: 10px 12px; }
+    .gallery.list-view .gallery-item img { width: 50px; height: 50px; }
+  }
 </style>
 </head>
 <body>
@@ -73,57 +88,57 @@
 </div>
 <div id="mainPage">
   <div class="header">
-    <h1>Screenshot Gallery</h1>
+    <h1>Gallery</h1>
     <div class="header-right">
-      <span class="count" id="totalCount">0 screenshots</span>
-      <button class="btn" onclick="document.getElementById('fileInput').click()">Upload</button>
-      <button class="btn btn-outline" onclick="loadImages(true)">Refresh</button>
+      <span class="count" id="totalCount">0</span>
+      <button class="btn-icon" id="viewToggle" onclick="toggleView()" title="Switch view">⊞</button>
+      <button class="btn" onclick="document.getElementById('fileInput').click()">+ Upload</button>
+      <button class="btn-icon" onclick="loadImages(true)" title="Refresh">↻</button>
     </div>
+  </div>
+  <div class="time-filters" id="timeFilters">
+    <span class="filter-chip active" data-filter="all" onclick="setTimeFilter('all')">All</span>
+    <span class="filter-chip" data-filter="today" onclick="setTimeFilter('today')">Today</span>
+    <span class="filter-chip" data-filter="week" onclick="setTimeFilter('week')">This Week</span>
+    <span class="filter-chip" data-filter="month" onclick="setTimeFilter('month')">This Month</span>
+    <span class="filter-chip" data-filter="older" onclick="setTimeFilter('older')">Older</span>
+  </div>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="Search by name..." oninput="filterAndRender()">
   </div>
   <div class="upload-zone" onclick="document.getElementById('fileInput').click()">
     <div class="icon">+</div>
-    <p>Click or drag images here</p>
+    <p>Tap to upload screenshots</p>
     <input type="file" id="fileInput" accept="image/*" multiple onchange="handleFiles(this.files)">
   </div>
   <div id="uploadProgress">
     <div class="bar-bg"><div class="bar" id="uploadBar"></div></div>
     <div class="text" id="uploadText">Uploading...</div>
   </div>
-  <div class="toolbar">
-    <select id="sortSelect" onchange="loadImages(true)">
-      <option value="newest">Newest first</option>
-      <option value="oldest">Oldest first</option>
-    </select>
-    <input type="text" id="searchInput" placeholder="Search filename..." oninput="loadImages(true)">
-  </div>
-  <div id="gallery" class="gallery"></div>
+  <div id="gallery" class="gallery grid-view"></div>
   <div id="emptyState">
     <div class="icon">📁</div>
-    <p>No screenshots yet. Upload some!</p>
+    <p>No screenshots yet</p>
   </div>
-  <button id="loadMoreBtn" onclick="loadMore()">Load more</button>
 </div>
 <div id="previewModal">
   <button class="close" onclick="closePreview()">&times;</button>
   <button class="nav prev" onclick="prevImage()">&lt;</button>
   <img id="previewImg" src="" alt="">
   <button class="nav next" onclick="nextImage()">&gt;</button>
-  <div class="info" id="previewInfo"></div>
+  <div class="preview-info" id="previewInfo"></div>
 </div>
 <script>
 const CONFIG = { domain: '' };
-let currentImages = [];
+let allImages = [];
+let filteredImages = [];
 let currentIndex = 0;
 let isLoading = false;
-let pageToken = '';
-const pageSize = 50;
+let currentView = 'grid';
+let currentTimeFilter = 'all';
 
 async function apiCos(action, params) {
-  const res = await fetch('/api', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action, params })
-  });
+  const res = await fetch('/api', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, params }) });
   return res.json();
 }
 
@@ -131,23 +146,13 @@ async function login() {
   const pwd = document.getElementById('passwordInput').value;
   try {
     const data = await apiCos('verify', { password: pwd });
-    if (data.valid) {
-      CONFIG.domain = data.domain;
-      document.getElementById('loginPage').style.display = 'none';
-      document.getElementById('mainPage').style.display = 'block';
-      loadImages(true);
-    } else {
-      document.getElementById('loginError').style.display = 'block';
-    }
-  } catch (err) { document.getElementById('loginError').style.display = 'block'; }
+    if (data.valid) { CONFIG.domain = data.domain; document.getElementById('loginPage').style.display = 'none'; document.getElementById('mainPage').style.display = 'block'; loadImages(true); }
+    else document.getElementById('loginError').style.display = 'block';
+  } catch { document.getElementById('loginError').style.display = 'block'; }
 }
 
 function showToast(msg, type) {
-  const t = document.createElement('div');
-  t.className = 'toast ' + type;
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(() => t.remove(), 3000);
+  const t = document.createElement('div'); t.className = 'toast ' + type; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
 }
 
 const uploadZone = document.querySelector('.upload-zone');
@@ -164,99 +169,101 @@ async function handleFiles(files) {
     document.getElementById('uploadBar').style.width = ((i + 1) / files.length * 100) + '%';
     document.getElementById('uploadText').textContent = `Uploading ${i + 1}/${files.length}`;
     const reader = new FileReader();
-    const base64 = await new Promise(resolve => {
-      reader.onload = e => resolve(e.target.result.split(',')[1]);
-      reader.readAsDataURL(f);
-    });
+    const base64 = await new Promise(resolve => { reader.onload = e => resolve(e.target.result.split(',')[1]); reader.readAsDataURL(f); });
     const ext = f.name.split('.').pop().toLowerCase();
     const key = 'screenshots/' + Date.now() + '_' + Math.random().toString(36).substr(2, 5) + '.' + ext;
-    try {
-      const res = await apiCos('upload', { key, body: base64 });
-      if (res.success) success++;
-      else fail++;
-    } catch { fail++; }
+    try { const res = await apiCos('upload', { key, body: base64 }); if (res.success) success++; else fail++; } catch { fail++; }
   }
   document.getElementById('uploadProgress').style.display = 'none';
-  showToast(`${success} success, ${fail} failed`, success > 0 ? 'success' : 'error');
+  showToast(`${success} uploaded, ${fail} failed`, success > 0 ? 'success' : 'error');
   loadImages(true);
 }
 
 async function loadImages(refresh = false) {
-  if (refresh) pageToken = '';
   if (isLoading) return;
   isLoading = true;
   try {
-    const data = await apiCos('list', { marker: pageToken, maxKeys: pageSize });
-    let images = [];
+    const data = await apiCos('list', { marker: '', maxKeys: 1000 });
     if (data.files && Array.isArray(data.files)) {
-      images = data.files.map(item => ({
-        key: item.key,
-        name: item.key.split('/').pop(),
-        size: parseInt(item.size) || 0,
-        lastModified: item.lastModified,
-        url: item.url
-      }));
+      allImages = data.files.map(item => ({ key: item.key, name: item.key.split('/').pop(), size: parseInt(item.size) || 0, lastModified: item.lastModified, url: item.url }));
     } else if (data.Contents) {
-      images = (data.Contents || []).map(item => ({
-        key: item.Key,
-        name: item.Key.split('/').pop(),
-        size: parseInt(item.Size) || 0,
-        lastModified: item.LastModified,
-        url: CONFIG.domain ? CONFIG.domain + '/' + item.Key : item.Key
-      }));
+      allImages = (data.Contents || []).map(item => ({ key: item.Key, name: item.Key.split('/').pop(), size: parseInt(item.Size) || 0, lastModified: item.LastModified, url: CONFIG.domain ? CONFIG.domain + '/' + item.Key : item.Key }));
     }
-    const search = document.getElementById('searchInput').value.toLowerCase().trim();
-    if (search) images = images.filter(img => img.name.toLowerCase().includes(search));
-    const sort = document.getElementById('sortSelect').value;
-    images.sort((a, b) => {
-      const da = new Date(a.lastModified), db = new Date(b.lastModified);
-      return sort === 'newest' ? db - da : da - db;
-    });
-    if (refresh) currentImages = images;
-    else currentImages = currentImages.concat(images);
-    renderGallery();
-    document.getElementById('totalCount').textContent = currentImages.length + ' screenshots';
-    document.getElementById('loadMoreBtn').style.display = 'none';
+    allImages.sort((a, b) => new Date(b.lastModified) - new Date(a.lastModified));
+    filterAndRender();
   } catch (err) { console.error(err); showToast('Load failed', 'error'); }
   finally { isLoading = false; }
 }
 
-function loadMore() { loadImages(false); }
+function filterAndRender() {
+  const query = document.getElementById('searchInput').value.toLowerCase().trim();
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+  const monthAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+  
+  filteredImages = allImages.filter(img => {
+    const date = new Date(img.lastModified);
+    let matchTime = true, matchSearch = true;
+    if (currentTimeFilter === 'today') matchTime = date >= today;
+    else if (currentTimeFilter === 'week') matchTime = date >= weekAgo && date < today;
+    else if (currentTimeFilter === 'month') matchTime = date >= monthAgo && date < weekAgo;
+    else if (currentTimeFilter === 'older') matchTime = date < monthAgo;
+    if (query) matchSearch = img.name.toLowerCase().includes(query);
+    return matchTime && matchSearch;
+  });
+  document.getElementById('totalCount').textContent = filteredImages.length;
+  renderGallery();
+}
 
 function renderGallery() {
   const gallery = document.getElementById('gallery');
   const empty = document.getElementById('emptyState');
-  if (currentImages.length === 0) { gallery.innerHTML = ''; empty.style.display = 'block'; return; }
+  if (filteredImages.length === 0) { gallery.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
-  gallery.innerHTML = currentImages.map((img, i) => `
-    <div class="gallery-item" onclick="openPreview(${i})">
-      <img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%231a1a2e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2212%22>Error</text></svg>'">
-      <div class="overlay"><span>${new Date(img.lastModified).toLocaleString()}</span></div>
-      <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button>
-    </div>
-  `).join('');
+  gallery.className = 'gallery ' + currentView + '-view';
+  gallery.innerHTML = filteredImages.map((img, i) => {
+    const dateStr = formatDate(img.lastModified);
+    if (currentView === 'grid') {
+      return `<div class="gallery-item" onclick="openPreview(${i})"><img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2212%22>?</text></svg>'"><div class="overlay"><span>${dateStr}</span></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button></div>`;
+    } else {
+      return `<div class="gallery-item" onclick="openPreview(${i})"><img src="${img.url}" alt="${img.name}" loading="lazy"><div class="info"><div class="name">${img.name}</div><div class="date">${dateStr}</div></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button></div>`;
+    }
+  }).join('');
 }
 
-function openPreview(index) {
-  currentIndex = index;
-  document.getElementById('previewImg').src = currentImages[index].url;
-  document.getElementById('previewInfo').textContent = `${index + 1} / ${currentImages.length}`;
-  document.getElementById('previewModal').classList.add('show');
+function toggleView() {
+  currentView = currentView === 'grid' ? 'list' : 'grid';
+  const btn = document.getElementById('viewToggle');
+  btn.textContent = currentView === 'grid' ? '⊞' : '▦';
+  btn.classList.toggle('active', currentView === 'list');
+  renderGallery();
 }
 
+function setTimeFilter(filter) {
+  currentTimeFilter = filter;
+  document.querySelectorAll('.filter-chip').forEach(chip => { chip.classList.toggle('active', chip.dataset.filter === filter); });
+  filterAndRender();
+}
+
+function formatDate(str) {
+  const d = new Date(str);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (date.getTime() === today.getTime()) return `Today ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function openPreview(index) { currentIndex = index; const img = filteredImages[index]; document.getElementById('previewImg').src = img.url; document.getElementById('previewInfo').textContent = img.name; document.getElementById('previewModal').classList.add('show'); }
 function closePreview() { document.getElementById('previewModal').classList.remove('show'); }
-function prevImage() { currentIndex = (currentIndex - 1 + currentImages.length) % currentImages.length; openPreview(currentIndex); }
-function nextImage() { currentIndex = (currentIndex + 1) % currentImages.length; openPreview(currentIndex); }
+function prevImage() { currentIndex = (currentIndex - 1 + filteredImages.length) % filteredImages.length; openPreview(currentIndex); }
+function nextImage() { currentIndex = (currentIndex + 1) % filteredImages.length; openPreview(currentIndex); }
 
 function confirmDelete(index) {
-  if (!confirm('Delete this image?')) return;
-  const img = currentImages[index];
-  apiCos('delete', { key: img.key }).then(() => {
-    currentImages.splice(index, 1);
-    renderGallery();
-    document.getElementById('totalCount').textContent = currentImages.length + ' screenshots';
-    showToast('Deleted', 'success');
-  }).catch(() => showToast('Delete failed', 'error'));
+  if (!confirm('Delete?')) return;
+  const img = filteredImages[index];
+  apiCos('delete', { key: img.key }).then(() => { allImages = allImages.filter(i => i.key !== img.key); filterAndRender(); showToast('Deleted', 'success'); }).catch(() => showToast('Delete failed', 'error'));
 }
 
 document.addEventListener('keydown', e => {

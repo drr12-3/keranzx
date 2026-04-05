@@ -9,6 +9,15 @@ const cos = new COS({
 const bucket = process.env.COS_BUCKET;
 const region = process.env.COS_REGION;
 
+// 获取 COS 访问域名
+function getCosDomain() {
+  const domain = process.env.COS_DOMAIN || '';
+  if (domain.startsWith('http://') || domain.startsWith('https://')) {
+    return domain.replace(/\/$/, '');
+  }
+  return 'https://' + domain;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.writeHead(200, {
@@ -47,7 +56,7 @@ module.exports = async function handler(req, res) {
           res.writeHead(200, headers);
           return res.end(JSON.stringify({
             valid: true,
-            domain: process.env.COS_DOMAIN || ''
+            domain: getCosDomain()
           }));
         } else {
           res.writeHead(200, headers);
@@ -58,11 +67,12 @@ module.exports = async function handler(req, res) {
       case 'config': {
         res.writeHead(200, headers);
         return res.end(JSON.stringify({
-          domain: process.env.COS_DOMAIN || ''
+          domain: getCosDomain()
         }));
       }
 
       case 'list': {
+        const cosDomain = getCosDomain();
         const result = await new Promise((resolve, reject) => {
           cos.getBucket({
             Bucket: bucket,
@@ -79,7 +89,7 @@ module.exports = async function handler(req, res) {
           .filter(item => item.Key !== 'screenshots/')
           .map(item => ({
             key: item.Key,
-            url: `https://${process.env.COS_DOMAIN}/${item.Key}`,
+            url: `${cosDomain}/${item.Key}`,
             lastModified: item.LastModified,
             size: item.Size
           }))
@@ -124,7 +134,7 @@ module.exports = async function handler(req, res) {
         res.writeHead(200, headers);
         return res.end(JSON.stringify({
           success: true,
-          url: `https://${process.env.COS_DOMAIN}/${key}`,
+          url: `${getCosDomain()}/${key}`,
           key: key
         }));
       }

@@ -6,10 +6,8 @@ async function loadImages(refresh = false) {
   try {
     const data = await apiCos('list', { marker: pageToken, maxKeys: pageSize });
     
-    // 兼容新 API 格式 (data.files) 和旧格式 (data.Contents)
     let images = [];
     if (data.files && Array.isArray(data.files)) {
-      // 新格式：API 直接返回 files 数组
       images = data.files.map(item => ({
         key: item.key,
         name: item.key.split('/').pop(),
@@ -17,9 +15,7 @@ async function loadImages(refresh = false) {
         lastModified: item.lastModified,
         url: item.url
       }));
-      pageToken = '';
     } else if (data.Contents) {
-      // 旧格式：COS SDK 原生返回
       images = (data.Contents || []).map(item => ({
         key: item.Key,
         name: item.Key.split('/').pop(),
@@ -27,6 +23,8 @@ async function loadImages(refresh = false) {
         lastModified: item.LastModified,
         url: `${CONFIG.domain}/${item.Key}`
       }));
+    }
+
       pageToken = data.NextMarker || '';
     }
 

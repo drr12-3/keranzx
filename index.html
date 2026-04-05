@@ -166,8 +166,8 @@
 <script>
 // ========== 配置 ==========
 const CONFIG = {
-  domain: '__COS_DOMAIN__',
-  password: '__ACCESS_PASSWORD__'
+  domain: '',  // COS_DOMAIN 通过API获取
+  password: ''  // 密码通过API验证
 };
 
 let currentImages = [];
@@ -193,17 +193,44 @@ async function apiCos(action, params) {
   return response.json();
 }
 
-function checkPassword() {
-  const pwd = document.getElementById('passwordInput').value;
-  if (pwd === CONFIG.password) {
-    sessionStorage.setItem('logged_in', '1');
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('mainPage').style.display = 'block';
-    loadImages();
-  } else {
-    document.getElementById('loginError').style.display = 'block';
-    document.getElementById('passwordInput').value = '';
+// 初始化配置
+async function initConfig() {
+  try {
+    const data = await apiCos('config');
+    CONFIG.domain = data.domain;
+    CONFIG.password = data.password;
+  } catch (err) {
+    console.error('获取配置失败:', err);
   }
+}
+
+async function checkPassword() {
+  const pwd = document.getElementById('passwordInput').value;
+  const btn = document.querySelector('.login-box button');
+  
+  btn.disabled = true;
+  btn.textContent = '验证中...';
+  
+  try {
+    const data = await apiCos('verify', { password: pwd });
+    if (data.valid) {
+      CONFIG.password = pwd;
+      CONFIG.domain = data.domain;
+      sessionStorage.setItem('logged_in', '1');
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+      loadImages();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+      document.getElementById('passwordInput').value = '';
+    }
+  } catch (err) {
+    document.getElementById('loginError').textContent = '验证失败，请重试';
+    document.getElementById('loginError').style.display = 'block';
+  }
+  
+  btn.disabled = false;
+  btn.textContent = '进入';
 }
 
 function logout() {

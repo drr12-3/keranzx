@@ -78,6 +78,27 @@ module.exports = async (req, res) => {
         return res.status(200).set(headers).json({ success: true });
       }
 
+      case 'verify': {
+        // 验证密码
+        const inputPwd = params.password;
+        const storedPwd = process.env.ACCESS_PASSWORD;
+        if (inputPwd === storedPwd) {
+          return res.status(200).set(headers).json({
+            valid: true,
+            domain: process.env.COS_DOMAIN || ''
+          });
+        } else {
+          return res.status(200).set(headers).json({ valid: false });
+        }
+      }
+
+      case 'config': {
+        // 返回公开配置（不包含密码）
+        return res.status(200).set(headers).json({
+          domain: process.env.COS_DOMAIN || ''
+        });
+      }
+
       default:
         return res.status(400).set(headers).json({ error: '未知操作: ' + action });
     }

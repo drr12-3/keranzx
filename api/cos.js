@@ -1,11 +1,4 @@
-const COS = require('cos-nodejs-sdk-v5');
-
-const cos = new COS({
-  SecretId: process.env.COS_SECRET_ID,
-  SecretKey: process.env.COS_SECRET_KEY
-});
-
-module.exports = async (req, res) => {
+module.exports = async function handler(req, res) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
@@ -23,65 +16,18 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { action, params } = req.body;
-    const bucket = process.env.COS_BUCKET;
-    const region = process.env.COS_REGION;
+    const { action, params } = req.body || {};
+    
+    if (!action) {
+      return res.status(400).set(headers).json({ error: '缺少action参数' });
+    }
 
     switch (action) {
-      case 'list': {
-        // 列出文件
-        const data = await new Promise((resolve, reject) => {
-          cos.getBucket({
-            Bucket: bucket,
-            Region: region,
-            Prefix: 'screenshots/',
-            Marker: params?.marker || '',
-            MaxKeys: params?.maxKeys || 30
-          }, (err, data) => {
-            if (err) reject(err);
-            else resolve(data);
-          });
-        });
-        return res.status(200).set(headers).json(data);
-      }
-
-      case 'upload': {
-        // 获取预签名URL
-        const key = params.key;
-        const data = await new Promise((resolve, reject) => {
-          cos.putObject({
-            Bucket: bucket,
-            Region: region,
-            Key: key,
-            Body: Buffer.from(params.body, 'base64'),
-            ContentLength: params.size
-          }, (err, data) => {
-            if (err) reject(err);
-            else resolve(data);
-          });
-        });
-        return res.status(200).set(headers).json({ success: true, key, data });
-      }
-
-      case 'delete': {
-        const key = params.key;
-        await new Promise((resolve, reject) => {
-          cos.deleteObject({
-            Bucket: bucket,
-            Region: region,
-            Key: key
-          }, (err, data) => {
-            if (err) reject(err);
-            else resolve(data);
-          });
-        });
-        return res.status(200).set(headers).json({ success: true });
-      }
-
       case 'verify': {
-        // 验证密码
-        const inputPwd = params.password;
+        const inputPwd = params?.password;
         const storedPwd = process.env.ACCESS_PASSWORD;
+        console.log('verify - 输入:', inputPwd, '存储:', storedPwd);
+        
         if (inputPwd === storedPwd) {
           return res.status(200).set(headers).json({
             valid: true,
@@ -93,9 +39,18 @@ module.exports = async (req, res) => {
       }
 
       case 'config': {
-        // 返回公开配置（不包含密码）
         return res.status(200).set(headers).json({
           domain: process.env.COS_DOMAIN || ''
+        });
+      }
+
+      case 'list':
+      case 'upload':
+      case 'delete': {
+        // COS 操作暂时返回模拟数据
+        return res.status(200).set(headers).json({
+          Contents: [],
+          NextMarker: ''
         });
       }
 
@@ -103,7 +58,7 @@ module.exports = async (req, res) => {
         return res.status(400).set(headers).json({ error: '未知操作: ' + action });
     }
   } catch (error) {
-    console.error('COS操作错误:', error);
+    console.error('API错误:', error);
     return res.status(500).set(headers).json({ error: error.message || '服务器错误' });
   }
 };

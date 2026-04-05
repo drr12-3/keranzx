@@ -50,3 +50,4 @@ module.exports = async function handler(req, res) {
     return res.status(500).set(headers).json({ error: error.message || '服务器错误' });
   }
 };
+

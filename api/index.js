@@ -89,7 +89,7 @@ module.exports = async function handler(req, res) {
           .filter(item => item.Key !== 'screenshots/')
           .map(item => ({
             key: item.Key,
-            url: `${cosDomain}/${item.Key}`,
+            url: cosDomain + '/' + item.Key,
             lastModified: item.LastModified,
             size: item.Size
           }))
@@ -134,7 +134,7 @@ module.exports = async function handler(req, res) {
         res.writeHead(200, headers);
         return res.end(JSON.stringify({
           success: true,
-          url: `${getCosDomain()}/${key}`,
+          url: getCosDomain() + '/' + key,
           key: key
         }));
       }
@@ -147,6 +147,68 @@ module.exports = async function handler(req, res) {
             Bucket: bucket,
             Region: region,
             Key: key
+          }, function(err, data) {
+            if (err) reject(err);
+            else resolve(data);
+          });
+        });
+
+        res.writeHead(200, headers);
+        return res.end(JSON.stringify({ success: true }));
+      }
+
+      case 'getMetadata': {
+        try {
+          const result = await new Promise((resolve, reject) => {
+            cos.getObject({
+              Bucket: bucket,
+              Region: region,
+              Key: 'metadata.json'
+            }, function(err, data) {
+              if (err && err.statusCode === 404) {
+                resolve({ Body: JSON.stringify({ categories: [], imageCategories: {} }) });
+              } else if (err) {
+                reject(err);
+              } else {
+                resolve(data);
+              }
+            });
+          });
+
+          let metadata = { categories: [], imageCategories: {} };
+          if (result.Body) {
+            const content = Buffer.isBuffer(result.Body) ? result.Body.toString('utf8') : result.Body;
+            metadata = JSON.parse(content);
+          }
+
+          res.writeHead(200, headers);
+          return res.end(JSON.stringify(metadata));
+        } catch (err) {
+          console.error('获取元数据失败:', err);
+          res.writeHead(200, headers);
+          return res.end(JSON.stringify({ categories: [], imageCategories: {} }));
+        }
+      }
+
+      case 'saveMetadata': {
+        const { categories, imageCategories } = params;
+
+        const metadata = JSON.stringify({
+          categories: categories || [],
+          imageCategories: imageCategories || {},
+          updatedAt: new Date().toISOString()
+        });
+
+        const buffer = Buffer.from(metadata, 'utf8');
+
+        await new Promise((resolve, reject) => {
+          cos.putObject({
+            Bucket: bucket,
+            Region: region,
+            Key: 'metadata.json',
+            Body: buffer,
+            ContentLength: buffer.length,
+            ContentType: 'application/json'
           }, function(err, data) {
             if (err) reject(err);
             else resolve(data);

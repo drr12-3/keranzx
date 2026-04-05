@@ -1,53 +1,52 @@
 module.exports = async function handler(req, res) {
   const headers = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
   };
 
   if (req.method === 'OPTIONS') {
-    return res.status(200).set(headers).send('');
+    res.set(headers);
+    return res.status(200).send('');
   }
 
   if (req.method !== 'POST') {
-    return res.status(405).set(headers).json({ error: '只支持POST请求' });
+    res.set(headers);
+    return res.status(405).json({ error: '只支持POST请求' });
   }
 
+  res.set(headers);
+
   try {
-    const { action, params } = req.body || {};
-    
-    if (!action) {
-      return res.status(400).set(headers).json({ error: '缺少action参数' });
-    }
+    const body = req.body || {};
+    const action = body.action;
+    const params = body.params || {};
 
-    switch (action) {
-      case 'verify': {
-        const inputPwd = params?.password;
-        const storedPwd = process.env.ACCESS_PASSWORD;
-        
-        if (inputPwd === storedPwd) {
-          return res.status(200).set(headers).json({
-            valid: true,
-            domain: process.env.COS_DOMAIN || ''
-          });
-        } else {
-          return res.status(200).set(headers).json({ valid: false });
-        }
-      }
+    if (action === 'verify') {
+      const inputPwd = params.password;
+      const storedPwd = process.env.ACCESS_PASSWORD;
 
-      case 'config': {
-        return res.status(200).set(headers).json({
+      if (inputPwd === storedPwd) {
+        return res.status(200).json({
+          valid: true,
           domain: process.env.COS_DOMAIN || ''
         });
+      } else {
+        return res.status(200).json({ valid: false });
       }
-
-      default:
-        return res.status(400).set(headers).json({ error: '未知操作: ' + action });
     }
+
+    if (action === 'config') {
+      return res.status(200).json({
+        domain: process.env.COS_DOMAIN || ''
+      });
+    }
+
+    return res.status(400).json({ error: '未知操作: ' + action });
   } catch (error) {
     console.error('API错误:', error);
-    return res.status(500).set(headers).json({ error: error.message || '服务器错误' });
+    return res.status(500).json({ error: error.message || '服务器错误' });
   }
 };
 

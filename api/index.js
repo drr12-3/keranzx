@@ -1,52 +1,65 @@
 module.exports = async function handler(req, res) {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
-  };
-
+  // Vercel Serverless Function 使用原生 Node.js 响应对象
+  
   if (req.method === 'OPTIONS') {
-    res.set(headers);
-    return res.status(200).send('');
+    res.writeHead(200, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json'
+    });
+    return res.end();
   }
 
   if (req.method !== 'POST') {
-    res.set(headers);
-    return res.status(405).json({ error: '只支持POST请求' });
+    res.writeHead(405, {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json'
+    });
+    return res.end(JSON.stringify({ error: '只支持POST请求' }));
   }
-
-  res.set(headers);
 
   try {
     const body = req.body || {};
     const action = body.action;
     const params = body.params || {};
 
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json'
+    };
+
     if (action === 'verify') {
       const inputPwd = params.password;
       const storedPwd = process.env.ACCESS_PASSWORD;
 
       if (inputPwd === storedPwd) {
-        return res.status(200).json({
+        res.writeHead(200, headers);
+        return res.end(JSON.stringify({
           valid: true,
           domain: process.env.COS_DOMAIN || ''
-        });
+        }));
       } else {
-        return res.status(200).json({ valid: false });
+        res.writeHead(200, headers);
+        return res.end(JSON.stringify({ valid: false }));
       }
     }
 
     if (action === 'config') {
-      return res.status(200).json({
+      res.writeHead(200, headers);
+      return res.end(JSON.stringify({
         domain: process.env.COS_DOMAIN || ''
-      });
+      }));
     }
 
-    return res.status(400).json({ error: '未知操作: ' + action });
+    res.writeHead(400, headers);
+    return res.end(JSON.stringify({ error: '未知操作: ' + action }));
   } catch (error) {
     console.error('API错误:', error);
-    return res.status(500).json({ error: error.message || '服务器错误' });
+    res.writeHead(500, {
+      'Access-Control-Allow-Origin': '*',
+      'Content-Type': 'application/json'
+    });
+    return res.end(JSON.stringify({ error: error.message || '服务器错误' }));
   }
 };
-

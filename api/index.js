@@ -10,8 +10,6 @@ const bucket = process.env.COS_BUCKET;
 const region = process.env.COS_REGION;
 
 module.exports = async function handler(req, res) {
-  // Vercel Serverless Function 使用原生 Node.js 响应对象
-  
   if (req.method === 'OPTIONS') {
     res.writeHead(200, {
       'Access-Control-Allow-Origin': '*',
@@ -65,7 +63,6 @@ module.exports = async function handler(req, res) {
       }
 
       case 'list': {
-        // 列出 COS 中的图片
         const result = await new Promise((resolve, reject) => {
           cos.getBucket({
             Bucket: bucket,
@@ -73,11 +70,8 @@ module.exports = async function handler(req, res) {
             Prefix: 'screenshots/',
             MaxKeys: 1000
           }, function(err, data) {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(data);
-            }
+            if (err) reject(err);
+            else resolve(data);
           });
         });
 
@@ -96,9 +90,21 @@ module.exports = async function handler(req, res) {
       }
 
       case 'upload': {
-        // 上传图片到 COS
-        const { filename, data: base64Data, contentType } = params;
-        const key = 'screenshots/' + filename;
+        const { key, body: base64Data } = params;
+        
+        if (!key || !base64Data) {
+          res.writeHead(400, headers);
+          return res.end(JSON.stringify({ error: '缺少必要参数' }));
+        }
+
+        const filename = key.split('/').pop();
+        const ext = filename.split('.').pop().toLowerCase();
+        const contentTypes = {
+          'jpg': 'image/jpeg', 'jpeg': 'image/jpeg',
+          'png': 'image/png', 'gif': 'image/gif',
+          'webp': 'image/webp', 'bmp': 'image/bmp'
+        };
+        const contentType = contentTypes[ext] || 'image/jpeg';
         const buffer = Buffer.from(base64Data, 'base64');
 
         await new Promise((resolve, reject) => {
@@ -107,13 +113,11 @@ module.exports = async function handler(req, res) {
             Region: region,
             Key: key,
             Body: buffer,
+            ContentLength: buffer.length,
             ContentType: contentType
           }, function(err, data) {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(data);
-            }
+            if (err) reject(err);
+            else resolve(data);
           });
         });
 
@@ -126,7 +130,6 @@ module.exports = async function handler(req, res) {
       }
 
       case 'delete': {
-        // 删除 COS 中的图片
         const { key } = params;
 
         await new Promise((resolve, reject) => {
@@ -135,11 +138,8 @@ module.exports = async function handler(req, res) {
             Region: region,
             Key: key
           }, function(err, data) {
-            if (err) {
-              reject(err);
-            } else {
-              resolve(data);
-            }
+            if (err) reject(err);
+            else resolve(data);
           });
         });
 
@@ -160,4 +160,3 @@ module.exports = async function handler(req, res) {
     return res.end(JSON.stringify({ error: error.message || '服务器错误' }));
   }
 };
-

@@ -179,7 +179,7 @@ let listMode = false;
 
 // 调用API
 async function apiCos(action, params) {
-  const response = await fetch('/api/cos', {
+  const response = await fetch('/api', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, params })

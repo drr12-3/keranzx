@@ -103,7 +103,7 @@
   .select-check { position: absolute; top: 6px; left: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.5); border: 2px solid #fff; display: none; align-items: center; justify-content: center; font-size: 0.8rem; color: #fff; z-index: 5; }
   .gallery-item.selected .select-check { display: flex; background: #e94560; border-color: #e94560; }
   .select-mode .select-check { display: flex; }
-  .gallery-item.selected .select-check::after { content: '\2713'; }
+  .gallery-item.selected .select-check::after { content: '✓'; }
 
   /* Tags */
   .tag { background: rgba(233,69,96,0.3); color: #e94560; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; }
@@ -203,11 +203,11 @@
     <h1>Gallery</h1>
     <div class="header-right">
       <span class="count" id="totalCount">0</span>
-      <button class="btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="Select mode">&#9744;</button>
-      <button class="btn-icon" id="viewToggle" onclick="toggleView()" title="Switch view">&#9638;</button>
-      <button class="btn secondary" onclick="openCategoryModal()">&#128203;</button>
+      <button class="btn-icon" id="selectModeBtn" onclick="toggleSelectMode()" title="Select mode">☐</button>
+      <button class="btn-icon" id="viewToggle" onclick="toggleView()" title="Switch view">⊞</button>
+      <button class="btn secondary" onclick="openCategoryModal()">🏷️</button>
       <button class="btn" onclick="document.getElementById('fileInput').click()">+ Upload</button>
-      <button class="btn-icon" onclick="loadImages(true)" title="Refresh">&#8635;</button>
+      <button class="btn-icon" onclick="loadImages(true)" title="Refresh">↻</button>
     </div>
   </div>
 
@@ -233,8 +233,8 @@
   <div id="batchBar">
     <span class="batch-info" id="batchInfo">0 selected</span>
     <div class="batch-actions">
-      <button class="btn secondary" onclick="openBatchAssignModal()">&#128203; Assign</button>
-      <button class="btn" onclick="batchDelete()">&#128465; Delete</button>
+      <button class="btn secondary" onclick="openBatchAssignModal()">🏷️ Assign</button>
+      <button class="btn" onclick="batchDelete()">🗑️ Delete</button>
       <button class="btn secondary" onclick="clearSelection()">Cancel</button>
     </div>
   </div>
@@ -252,7 +252,7 @@
 
   <div id="gallery" class="gallery grid-view"></div>
   <div id="emptyState">
-    <div class="icon">&#128193;</div>
+    <div class="icon">📁</div>
     <p>No screenshots yet</p>
   </div>
 </div>
@@ -266,9 +266,9 @@
   <div class="preview-info" id="previewInfo"></div>
   <div class="preview-tags" id="previewTags"></div>
   <div class="preview-actions">
-    <button onclick="copyImageLink()">&#128203; Copy Link</button>
-    <button onclick="downloadImage()">&#11015; Download</button>
-    <button onclick="openAssignModal()">&#128203; Categories</button>
+    <button onclick="copyImageLink()">📋 Copy Link</button>
+    <button onclick="downloadImage()">⬇️ Download</button>
+    <button onclick="openAssignModal()">🏷️ Categories</button>
   </div>
 </div>
 
@@ -276,7 +276,7 @@
 <div id="categoryModal" class="modal">
   <div class="modal-content">
     <h3>
-      <span>&#128203; Categories</span>
+      <span>🏷️ Categories</span>
       <button class="close-btn" onclick="closeCategoryModal()">&times;</button>
     </h3>
     <div class="category-form">
@@ -292,7 +292,7 @@
 <div id="assignModal" class="modal">
   <div class="modal-content">
     <h3>
-      <span id="assignModalTitle">&#128203; Categories</span>
+      <span id="assignModalTitle">🏷️ Categories</span>
       <button class="close-btn" onclick="closeAssignModal()">&times;</button>
     </h3>
     <p style="color: #888; font-size: 0.85rem; margin-bottom: 12px;" id="assignModalDesc">Select categories for this image:</p>
@@ -324,23 +324,49 @@ let metadataLoaded = false;
 // Init
 function init() {
   document.getElementById('newCatColor').value = getRandomColor();
-  loadMetadata();
+  // loadMetadata() will be called in login() after successful auth
 }
 
-// Load metadata from COS
+// Load metadata from COS (with localStorage fallback)
 async function loadMetadata() {
+  // First try localStorage (instant, reliable)
+  const localCats = localStorage.getItem('gallery_categories');
+  const localImgCats = localStorage.getItem('gallery_image_categories');
+  
+  if (localCats) {
+    categories = JSON.parse(localCats);
+  }
+  if (localImgCats) {
+    imageCategories = JSON.parse(localImgCats);
+  }
+  
+  // Then try COS for sync (don't block UI)
   try {
     const data = await apiCos('getMetadata', {});
-    categories = data.categories || [];
-    imageCategories = data.imageCategories || {};
-    metadataLoaded = true;
-    renderCategoryFilters();
+    if (data.categories && data.categories.length > 0) {
+      categories = data.categories;
+    }
+    if (data.imageCategories && Object.keys(data.imageCategories).length > 0) {
+      imageCategories = data.imageCategories;
+    }
+    // Save back to localStorage to keep in sync
+    localStorage.setItem('gallery_categories', JSON.stringify(categories));
+    localStorage.setItem('gallery_image_categories', JSON.stringify(imageCategories));
   } catch (err) {
-    console.error('Failed to load metadata:', err);
-    categories = [];
-    imageCategories = {};
-    metadataLoaded = true;
+    console.warn('COS sync failed, using local data:', err);
   }
+  
+  metadataLoaded = true;
+  // Sync img.tags with imageCategories
+  syncImageTags();
+  renderCategoryFilters();
+}
+
+// Sync allImages tags with imageCategories
+function syncImageTags() {
+  allImages.forEach(img => {
+    img.tags = imageCategories[img.key] || [];
+  });
 }
 
 // Save metadata to COS
@@ -350,10 +376,12 @@ async function saveMetadata() {
       categories: categories,
       imageCategories: imageCategories
     });
+    // Also save to localStorage as backup
     localStorage.setItem('gallery_categories', JSON.stringify(categories));
     localStorage.setItem('gallery_image_categories', JSON.stringify(imageCategories));
   } catch (err) {
     console.error('Failed to save metadata:', err);
+    // Still save to localStorage as fallback
     localStorage.setItem('gallery_categories', JSON.stringify(categories));
     localStorage.setItem('gallery_image_categories', JSON.stringify(imageCategories));
   }
@@ -378,7 +406,9 @@ async function login() {
       CONFIG.domain = data.domain;
       document.getElementById('loginPage').style.display = 'none';
       document.getElementById('mainPage').style.display = 'block';
-      loadImages(true);
+      // Load metadata first, then images
+      await loadMetadata();
+      await loadImages(true);
     } else {
       document.getElementById('loginError').style.display = 'block';
     }
@@ -407,7 +437,7 @@ async function handleFiles(files) {
   for (let i = 0; i < files.length; i++) {
     const f = files[i];
     document.getElementById('uploadBar').style.width = ((i + 1) / files.length * 100) + '%';
-    document.getElementById('uploadText').textContent = 'Uploading ' + (i + 1) + '/' + files.length;
+    document.getElementById('uploadText').textContent = `Uploading ${i + 1}/${files.length}`;
     const reader = new FileReader();
     const base64 = await new Promise(resolve => {
       reader.onload = e => resolve(e.target.result.split(',')[1]);
@@ -424,7 +454,7 @@ async function handleFiles(files) {
     } catch { fail++; }
   }
   document.getElementById('uploadProgress').style.display = 'none';
-  showToast(success + ' uploaded, ' + fail + ' failed', success > 0 ? 'success' : 'error');
+  showToast(`${success} uploaded, ${fail} failed`, success > 0 ? 'success' : 'error');
   loadImages(true);
 }
 
@@ -474,15 +504,18 @@ function filterAndRender() {
     let matchSearch = true;
     let matchCat = true;
 
+    // Time filter
     if (currentTimeFilter === 'today') matchTime = date >= today;
     else if (currentTimeFilter === 'week') matchTime = date >= weekAgo && date < today;
     else if (currentTimeFilter === 'month') matchTime = date >= monthAgo && date < weekAgo;
     else if (currentTimeFilter === 'older') matchTime = date < monthAgo;
 
+    // Category filter
     if (currentCatFilter !== 'all') {
       matchCat = img.tags.includes(currentCatFilter);
     }
 
+    // Search filter
     if (searchQuery) {
       matchSearch = img.name.toLowerCase().includes(searchQuery) ||
                     img.tags.some(t => {
@@ -517,20 +550,39 @@ function renderGallery() {
     const dateStr = formatDate(img.lastModified);
     const catsHtml = img.tags.map(tid => {
       const cat = categories.find(c => c.id === tid);
-      return cat ? '<span class="cat-tag" style="background:' + cat.color + '20"><span class="cat-dot" style="background:' + cat.color + '"></span>' + cat.name + '</span>' : '';
+      return cat ? `<span class="cat-tag" style="background:${cat.color}20"><span class="cat-dot" style="background:${cat.color}"></span>${cat.name}</span>` : '';
     }).join('');
 
     const isSelected = selectedImages.has(img.key);
 
     if (currentView === 'grid') {
-      return '<div class="gallery-item ' + (isSelected ? 'selected' : '') + '" onclick="handleItemClick(\'' + img.key + '\', ' + i + ')"><div class="select-check"></div><img src="' + img.url + '" alt="' + img.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>\'"><div class="cat-indicator">' + catsHtml + '</div><div class="overlay"><span>' + dateStr + '</span></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(' + i + ')">&times;</button></div>';
+      return `
+        <div class="gallery-item ${isSelected ? 'selected' : ''}" onclick="handleItemClick('${img.key}', ${i})">
+          <div class="select-check"></div>
+          <img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>'">
+          <div class="cat-indicator">${catsHtml}</div>
+          <div class="overlay"><span>${dateStr}</span></div>
+          <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button>
+        </div>
+      `;
     } else {
-      return '<div class="gallery-item ' + (isSelected ? 'selected' : '') + '" onclick="handleItemClick(\'' + img.key + '\', ' + i + ')"><div class="select-check"></div><img src="' + img.url + '" alt="' + img.name + '" loading="lazy" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>\'"><div class="info"><div class="name">' + img.name + '</div><div class="date">' + dateStr + '</div><div class="tags">' + catsHtml + '</div></div><button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(' + i + ')">&times;</button></div>';
+      return `
+        <div class="gallery-item ${isSelected ? 'selected' : ''}" onclick="handleItemClick('${img.key}', ${i})">
+          <div class="select-check"></div>
+          <img src="${img.url}" alt="${img.name}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect fill=%22%2316213e%22 width=%22100%22 height=%22100%22/><text x=%2250%22 y=%2255%22 text-anchor=%22middle%22 fill=%22%23555%22 font-size=%2210%22>?</text></svg>'">
+          <div class="info">
+            <div class="name">${img.name}</div>
+            <div class="date">${dateStr}</div>
+            <div class="tags">${catsHtml}</div>
+          </div>
+          <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(${i})">&times;</button>
+        </div>
+      `;
     }
   }).join('');
 }
 
-// Handle item click
+// Handle item click (select mode vs preview mode)
 function handleItemClick(key, index) {
   if (selectMode) {
     toggleSelect(key);
@@ -555,7 +607,7 @@ function toggleSelect(key) {
   } else {
     selectedImages.add(key);
   }
-  document.getElementById('batchInfo').textContent = selectedImages.size + ' selected';
+  document.getElementById('batchInfo').textContent = `${selectedImages.size} selected`;
   renderGallery();
 }
 
@@ -568,7 +620,7 @@ function clearSelection() {
 // Batch delete
 async function batchDelete() {
   if (selectedImages.size === 0) return;
-  if (!confirm('Delete ' + selectedImages.size + ' images?')) return;
+  if (!confirm(`Delete ${selectedImages.size} images?`)) return;
 
   let success = 0, fail = 0;
   for (const key of selectedImages) {
@@ -584,14 +636,14 @@ async function batchDelete() {
   selectedImages.clear();
   toggleSelectMode();
   filterAndRender();
-  showToast(success + ' deleted, ' + fail + ' failed', success > 0 ? 'success' : 'error');
+  showToast(`${success} deleted, ${fail} failed`, success > 0 ? 'success' : 'error');
 }
 
 // Toggle view
 function toggleView() {
   currentView = currentView === 'grid' ? 'list' : 'grid';
   const btn = document.getElementById('viewToggle');
-  btn.textContent = currentView === 'grid' ? '\u9638' : '\u25A6';
+  btn.textContent = currentView === 'grid' ? '⊞' : '▦';
   btn.classList.toggle('active', currentView === 'list');
   renderGallery();
 }
@@ -622,9 +674,9 @@ function formatDate(str) {
   const date = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
   if (date.getTime() === today.getTime()) {
-    return 'Today ' + String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    return `Today ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
   }
-  return d.getFullYear() + '.' + String(d.getMonth()+1).padStart(2,'0') + '.' + String(d.getDate()).padStart(2,'0');
+  return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
 }
 
 // Preview
@@ -634,9 +686,10 @@ function openPreview(index) {
   document.getElementById('previewImg').src = img.url;
   document.getElementById('previewInfo').textContent = img.name;
 
+  // Show categories in preview
   const catsHtml = img.tags.map(tid => {
     const cat = categories.find(c => c.id === tid);
-    return cat ? '<span class="cat-tag" style="background:' + cat.color + '20"><span class="cat-dot" style="background:' + cat.color + '"></span>' + cat.name + '</span>' : '';
+    return cat ? `<span class="cat-tag" style="background:${cat.color}20"><span class="cat-dot" style="background:${cat.color}"></span>${cat.name}</span>` : '';
   }).join('');
   document.getElementById('previewTags').innerHTML = catsHtml;
 
@@ -741,10 +794,12 @@ function deleteCategory(id) {
 
   categories = categories.filter(c => c.id !== id);
 
+  // Remove from all images
   for (const key in imageCategories) {
     imageCategories[key] = imageCategories[key].filter(cid => cid !== id);
   }
 
+  // Update allImages
   allImages.forEach(img => {
     img.tags = img.tags.filter(tid => tid !== id);
   });
@@ -767,18 +822,36 @@ function renderCategoryList() {
 
   list.innerHTML = categories.map(cat => {
     const count = allImages.filter(img => img.tags.includes(cat.id)).length;
-    return '<div class="category-item"><span class="cat-dot" style="background: ' + cat.color + '"></span><span class="cat-name">' + cat.name + '</span><span class="cat-count">' + count + '</span><div class="cat-actions"><button class="delete" onclick="deleteCategory(\'' + cat.id + '\')">Delete</button></div></div>';
+    return `
+      <div class="category-item">
+        <span class="cat-dot" style="background: ${cat.color}"></span>
+        <span class="cat-name">${cat.name}</span>
+        <span class="cat-count">${count}</span>
+        <div class="cat-actions">
+          <button class="delete" onclick="deleteCategory('${cat.id}')">Delete</button>
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
 function renderCategoryFilters() {
   const container = document.getElementById('categoryFilters');
 
-  let html = '<span class="category-chip ' + (currentCatFilter === 'all' ? 'active' : '') + '" data-cat="all" onclick="setCategoryFilter(\'all\')">All <span class="count-badge" id="catAllCount">' + allImages.length + '</span></span>';
+  let html = `
+    <span class="category-chip ${currentCatFilter === 'all' ? 'active' : ''}" data-cat="all" onclick="setCategoryFilter('all')">
+      All <span class="count-badge" id="catAllCount">${allImages.length}</span>
+    </span>
+  `;
 
   categories.forEach(cat => {
     const count = allImages.filter(img => img.tags.includes(cat.id)).length;
-    html += '<span class="category-chip ' + (currentCatFilter === cat.id ? 'active' : '') + '" data-cat="' + cat.id + '" onclick="setCategoryFilter(\'' + cat.id + '\')"><span class="dot" style="background: ' + cat.color + '"></span>' + cat.name + ' <span class="count-badge">' + count + '</span></span>';
+    html += `
+      <span class="category-chip ${currentCatFilter === cat.id ? 'active' : ''}" data-cat="${cat.id}" onclick="setCategoryFilter('${cat.id}')">
+        <span class="dot" style="background: ${cat.color}"></span>
+        ${cat.name} <span class="count-badge">${count}</span>
+      </span>
+    `;
   });
 
   container.innerHTML = html;
@@ -786,14 +859,14 @@ function renderCategoryFilters() {
 
 // =============== ASSIGN CATEGORIES ===============
 
-let assignTarget = null;
+let assignTarget = null; // 'single' or 'batch'
 let assignImageKey = null;
 
 function openAssignModal() {
   closePreview();
   assignTarget = 'single';
   assignImageKey = filteredImages[currentIndex].key;
-  document.getElementById('assignModalTitle').innerHTML = '&#128203; Categories';
+  document.getElementById('assignModalTitle').textContent = '🏷️ Categories';
   document.getElementById('assignModalDesc').textContent = 'Select categories for this image:';
   renderAssignCats();
   document.getElementById('assignModal').classList.add('show');
@@ -801,8 +874,8 @@ function openAssignModal() {
 
 function openBatchAssignModal() {
   assignTarget = 'batch';
-  document.getElementById('assignModalTitle').innerHTML = '&#128203; Batch Assign';
-  document.getElementById('assignModalDesc').textContent = 'Assign categories to ' + selectedImages.size + ' selected images:';
+  document.getElementById('assignModalTitle').textContent = '🏷️ Batch Assign';
+  document.getElementById('assignModalDesc').textContent = `Assign categories to ${selectedImages.size} selected images:`;
   renderAssignCats();
   document.getElementById('assignModal').classList.add('show');
 }
@@ -827,7 +900,12 @@ function renderAssignCats() {
 
   container.innerHTML = categories.map(cat => {
     const isSelected = currentCats.includes(cat.id);
-    return '<button class="assign-cat-btn ' + (isSelected ? 'selected' : '') + '" onclick="toggleAssignCat(\'' + cat.id + '\')" data-cat="' + cat.id + '"><span class="dot" style="background: ' + cat.color + '"></span>' + cat.name + '</button>';
+    return `
+      <button class="assign-cat-btn ${isSelected ? 'selected' : ''}" onclick="toggleAssignCat('${cat.id}')" data-cat="${cat.id}">
+        <span class="dot" style="background: ${cat.color}"></span>
+        ${cat.name}
+      </button>
+    `;
   }).join('');
 }
 
@@ -839,6 +917,13 @@ function toggleAssignCat(catId) {
     } else {
       imageCategories[assignImageKey] = [...cats, catId];
     }
+    // Immediately sync allImages for correct count display
+    allImages.forEach(img => {
+      img.tags = imageCategories[img.key] || [];
+    });
+    renderCategoryFilters();
+  } else {
+    // For batch, just toggle UI, actual assignment happens on save
   }
   renderAssignCats();
 }
@@ -859,8 +944,11 @@ function saveCategories() {
   if (assignTarget === 'single') {
     // Already updated in toggleAssignCat
   } else if (assignTarget === 'batch') {
+    // Get selected category IDs from UI
     const selectedBtns = document.querySelectorAll('.assign-cat-btn.selected');
     const selectedCats = Array.from(selectedBtns).map(btn => btn.dataset.cat);
+
+    // Get currently selected images' cats
     const keys = Array.from(selectedImages);
 
     keys.forEach(key => {
@@ -872,6 +960,7 @@ function saveCategories() {
     });
   }
 
+  // Update allImages
   allImages.forEach(img => {
     img.tags = imageCategories[img.key] || [];
   });
@@ -895,4 +984,3 @@ init();
 </script>
 </body>
 </html>
-

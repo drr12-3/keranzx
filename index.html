@@ -923,7 +923,12 @@ function toggleAssignCat(catId) {
     });
     renderCategoryFilters();
   } else {
-    // For batch, just toggle UI, actual assignment happens on save
+    // Batch mode: toggle UI selection state directly on the button
+    const btn = document.querySelector(`.assign-cat-btn[data-cat="${catId}"]`);
+    if (btn) {
+      btn.classList.toggle('selected');
+    }
+    return; // Don't call renderAssignCats() to avoid resetting UI state
   }
   renderAssignCats();
 }
